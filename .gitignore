@@ -27,3 +27,4 @@ replay_pid*
 # Custom
 mongodb
 kafka
+application.*
