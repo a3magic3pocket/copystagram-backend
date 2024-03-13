@@ -23,6 +23,13 @@ dependencies {
 	testImplementation 'org.springframework.kafka:spring-kafka-test'
     compileOnly 'org.projectlombok:lombok' 
     annotationProcessor 'org.projectlombok:lombok'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+    implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+	implementation 'javax.validation:validation-api:2.0.1.Final'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+    
     // implementation 'org.springframework.boot:spring-boot-starter-data-jpa'  
 }
 
