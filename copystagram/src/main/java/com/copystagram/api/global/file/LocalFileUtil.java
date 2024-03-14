@@ -1,6 +1,7 @@
 package com.copystagram.api.global.file;
 
 import java.io.File;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -30,7 +31,9 @@ public class LocalFileUtil implements FileUtil {
 		fileUtilResultDto.setOk(true);
 
 		try {
-			Files.copy(input.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+			InputStream inputStream = input.getInputStream();
+			Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+			inputStream.close();
 		} catch (Exception e) {
 			System.out.println("e: " + e);
 
