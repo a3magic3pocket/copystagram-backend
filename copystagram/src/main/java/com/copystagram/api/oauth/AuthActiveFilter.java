@@ -1,7 +1,6 @@
 package com.copystagram.api.oauth;
 
 import java.io.IOException;
-import java.security.Principal;
 
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 
@@ -20,17 +19,17 @@ public class AuthActiveFilter implements Filter {
 		HttpServletResponse resp = (HttpServletResponse) servletResponse;
 		HttpServletRequest req = (HttpServletRequest) servletRequest;
 		OAuth2AuthenticationToken authToken = (OAuth2AuthenticationToken) req.getUserPrincipal();
+		if (authToken != null) {
+			boolean isActive = authToken.getPrincipal().getAttribute(OAuth2UserKey.IS_ACTIVE.getValue());
+			boolean isAuthenticated = authToken.isAuthenticated();
 
-		boolean isActive = authToken.getPrincipal().getAttribute(OAuth2UserKey.IS_ACTIVE.getValue());
-		boolean isAuthenticated = authToken.isAuthenticated();
+			if (isAuthenticated && !isActive) {
+				resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "your account has been banned");
+				return;
+			}
 
-		if (isAuthenticated && !isActive) {
-			resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "your account has been banned");
-			return;
 		}
 
 		filterChain.doFilter(servletRequest, servletResponse);
-
 	}
-
 }
