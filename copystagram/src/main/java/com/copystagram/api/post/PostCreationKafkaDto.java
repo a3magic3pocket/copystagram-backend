@@ -8,4 +8,5 @@ import lombok.Setter;
 public class PostCreationKafkaDto {
 	String description;
 	String imageDirName;
+	String ownerId;
 }

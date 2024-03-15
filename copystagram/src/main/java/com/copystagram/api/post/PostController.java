@@ -28,7 +28,8 @@ public class PostController {
 
 	@PostMapping(value = "/post")
 	public String create(@RequestParam(value = "description") @NotBlank @Max(1000) String desc,
-			@RequestParam(value = "image") @NotBlank MultipartFile[] imageFiles) throws IOException {
+			@RequestParam(value = "image") @NotBlank MultipartFile[] imageFiles, Authentication authToken)
+			throws IOException {
 		System.out.println("IN CREATE");
 
 		PostCreationDto postCreationDto = new PostCreationDto();
@@ -44,6 +45,7 @@ public class PostController {
 			imageMap.put(i, postCreationImageDto);
 		}
 		postCreationDto.setImageMap(imageMap);
+		postCreationDto.setOwnerId(authToken.getName());
 
 		postService.create(postCreationDto);
 

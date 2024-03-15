@@ -7,7 +7,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -30,19 +32,22 @@ public class PostService {
 	public final LocalFileUtil localFileUtil;
 	public final GlobalConfig globalConfig;
 	public final ImageManipulation imageManipulation;
+	public final PostRepository postRepository;
 	public final KafkaTemplate<String, Object> kafkaTemplate;
 
 	public void create(PostCreationDto postCreationDto) {
 		System.out.println("postCreationDto: " + postCreationDto);
+		String imageDirName = UUID.randomUUID().toString();
+
 		CompletableFuture.runAsync(() -> {
 			System.out.println("inner async start");
 			try {
-				String imageDirName = UUID.randomUUID().toString();
 				saveRowImageFiles(imageDirName, postCreationDto);
 
 				PostCreationKafkaDto postCreationKafkaDto = new PostCreationKafkaDto();
-				postCreationKafkaDto.setDescription(postCreationDto.description);
+				postCreationKafkaDto.setDescription(postCreationDto.getDescription());
 				postCreationKafkaDto.setImageDirName(imageDirName);
+				postCreationKafkaDto.setOwnerId(postCreationDto.getOwnerId());
 
 				this.kafkaTemplate.send("post-creation", postCreationKafkaDto);
 			} catch (Exception e) {
@@ -52,6 +57,12 @@ public class PostService {
 		}).exceptionally((e) -> {
 			System.out.println("e: " + e);
 			System.out.println("come in exceptionally");
+
+			// raw 이미지 디렉토리 삭제
+			String imageDirPrefix = "/" + globalConfig.getRootImageDirName() + "/" + imageDirName;
+			Path imageDirPath = localFileUtil.getStaticFilePath(imageDirPrefix);
+			localFileUtil.deleteDir(imageDirPath);
+
 			return null;
 		});
 
@@ -80,46 +91,84 @@ public class PostService {
 	}
 
 	@KafkaListener(topics = "post-creation", groupId = "post-creation", containerFactory = "postCreationKafkaListener")
-	private void consumePostCreation(PostCreationKafkaDto message) throws java.io.IOException {
+	private void consumePostCreation(PostCreationKafkaDto message) {
 		System.out.println("receive message: " + message);
 		System.out.println("message.getDescription()" + message.getDescription());
 		System.out.println("message.ImageDirName()" + message.getImageDirName());
 
-		String postPrefix = "/" + globalConfig.getRootImageDirName() + "/" + message.getImageDirName();
+		String imageDirName = message.getImageDirName();
+		String postPrefix = "/" + globalConfig.getRootImageDirName() + "/" + imageDirName;
 		Path postRawDirPath = localFileUtil.getStaticFilePath(postPrefix + "/" + globalConfig.getRawDirName());
-		Path postThumbDirPath = localFileUtil.getStaticFilePath(postPrefix + "/" + globalConfig.getThumbDirName());
-		Path postContentDirPath = localFileUtil.getStaticFilePath(postPrefix + "/" + globalConfig.getContentDirName());
 
-		Files.createDirectories(postThumbDirPath);
-		Files.createDirectories(postContentDirPath);
+		try {
+			// 이미지 조작
+			Path postThumbDirPath = localFileUtil.getStaticFilePath(postPrefix + "/" + globalConfig.getThumbDirName());
+			Path postContentDirPath = localFileUtil
+					.getStaticFilePath(postPrefix + "/" + globalConfig.getContentDirName());
 
-		System.out.println("postThumbDirPath +" + postThumbDirPath);
-		System.out.println("postContentDirPath +" + postContentDirPath);
+			String thumbImagePath = "";
+			List<String> contentImagePaths = new ArrayList<String>();
 
-		Set<Path> rawImagePaths = localFileUtil.getFilePaths(postRawDirPath);
-		System.out.println("rawImagePaths+" + rawImagePaths);
+			Files.createDirectories(postThumbDirPath);
+			Files.createDirectories(postContentDirPath);
 
-		int i = 0;
-		String imageExt = "jpeg";
-		for (Path rawImagePath : rawImagePaths) {
-			byte[] bytes = Files.readAllBytes(rawImagePath);
+			Set<Path> rawImagePaths = localFileUtil.getFilePaths(postRawDirPath);
+			System.out.println("rawImagePaths+" + rawImagePaths);
 
-			try (InputStream is = new ByteArrayInputStream(bytes)) {
-				// 이미지 가로:세로 = 1:1이 되도록 crop
-				BufferedImage resultImage = imageManipulation.cropSquare(is);
-				// thumbnail 이미지 resize
-				BufferedImage thumbImage = imageManipulation.resize(resultImage, 144);
-				// content 이미지 resize
-				BufferedImage contentImage = imageManipulation.resize(resultImage, 430);
+			int i = 0;
+			String imageExt = "jpeg";
+			for (Path rawImagePath : rawImagePaths) {
+				byte[] bytes = Files.readAllBytes(rawImagePath);
 
-				File thumbfile = new File(postThumbDirPath + "/" + i + "." + imageExt);
-				ImageIO.write(thumbImage, "jpeg", thumbfile);
+				try (InputStream is = new ByteArrayInputStream(bytes)) {
+					// 이미지 가로:세로 = 1:1이 되도록 crop
+					BufferedImage resultImage = imageManipulation.cropSquare(is);
 
-				File contentfile = new File(postContentDirPath + "/" + i + "." + imageExt);
-				ImageIO.write(contentImage, imageExt, contentfile);
+					// content 이미지 resize
+					BufferedImage contentImage = imageManipulation.resize(resultImage, 430);
+
+					String contentFileName = "/" + i + "." + imageExt;
+					File contentfile = new File(postContentDirPath + contentFileName);
+					ImageIO.write(contentImage, imageExt, contentfile);
+
+					String contentImagePath = "/" + imageDirName + "/" + globalConfig.getContentDirName()
+							+ contentFileName;
+
+					contentImagePaths.add(contentImagePath);
+
+					System.out.println("contentImageUri" + contentImagePath);
+
+					if (i == 0) {
+						// thumbnail 이미지 resize
+						BufferedImage thumbImage = imageManipulation.resize(resultImage, 144);
+
+						String thumbFileName = "/" + i + "." + imageExt;
+						File thumbfile = new File(postThumbDirPath + thumbFileName);
+						ImageIO.write(thumbImage, "jpeg", thumbfile);
+
+						thumbImagePath = "/" + imageDirName + "/" + globalConfig.getThumbDirName() + thumbFileName;
+
+						System.out.println("thumbImageUri" + thumbImagePath);
+					}
+				}
+
+				i++;
 			}
 
-			i++;
+			// DB 처리
+			Post newPost = new Post();
+			newPost.setOwnerId(message.getOwnerId());
+			newPost.setDescription(message.getDescription());
+			newPost.setImageDirName(message.getImageDirName());
+			newPost.setThumbImagePath(thumbImagePath);
+			newPost.setContentImagePaths(contentImagePaths);
+			postRepository.save(newPost);
+		} catch (IOException e) {
+			e.printStackTrace();
+			System.out.println("e: " + e);
+		} finally {
+			// raw 이미지 디렉토리 삭제
+			localFileUtil.deleteDir(postRawDirPath);
 		}
 	}
 }

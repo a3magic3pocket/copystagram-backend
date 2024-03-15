@@ -9,5 +9,6 @@ import lombok.Setter;
 @Setter
 public class PostCreationDto {
 	String description;
+	String ownerId;
 	Map<Integer, PostCreationImageDto> imageMap;
 }
