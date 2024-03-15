@@ -8,33 +8,28 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
-import javax.validation.constraints.Size;
 
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 import com.copystagram.api.global.config.GlobalConfig;
 import com.copystagram.api.global.file.LocalFileUtil;
+import com.copystagram.api.global.image.ImageManipulation;
 
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
 @RequiredArgsConstructor
 @Service
 public class PostService {
 	public final LocalFileUtil localFileUtil;
 	public final GlobalConfig globalConfig;
+	public final ImageManipulation imageManipulation;
 	public final KafkaTemplate<String, Object> kafkaTemplate;
 
 	public void create(PostCreationDto postCreationDto) {
@@ -90,16 +85,6 @@ public class PostService {
 		System.out.println("message.getDescription()" + message.getDescription());
 		System.out.println("message.ImageDirName()" + message.getImageDirName());
 
-		// - 이미지 처리
-		// 이미지 jpg로 변경(jpg로 퀄리티 설정)
-		// 이미지 orientation 조정
-		// 이미지 가로:세로 = 1:1이 되도록 crop
-		// 본문용 이미지로 크키 조정 후 저장
-		// thumbnail 이미지로 크키 조정 후 저장
-		if (true) {
-			return;
-		}
-
 		String postPrefix = "/" + globalConfig.getRootImageDirName() + "/" + message.getImageDirName();
 		Path postRawDirPath = localFileUtil.getStaticFilePath(postPrefix + "/" + globalConfig.getRawDirName());
 		Path postThumbDirPath = localFileUtil.getStaticFilePath(postPrefix + "/" + globalConfig.getThumbDirName());
@@ -111,42 +96,30 @@ public class PostService {
 		System.out.println("postThumbDirPath +" + postThumbDirPath);
 		System.out.println("postContentDirPath +" + postContentDirPath);
 
-		Set<Path> rawImagePaths = new HashSet<Path>();
-		try (Stream<Path> stream = Files.list(postRawDirPath)) {
-			rawImagePaths = stream.filter(file -> !Files.isDirectory(file)).collect(Collectors.toSet());
-		}
-
+		Set<Path> rawImagePaths = localFileUtil.getFilePaths(postRawDirPath);
 		System.out.println("rawImagePaths+" + rawImagePaths);
 
-		int j = 0;
+		int i = 0;
+		String imageExt = "jpeg";
 		for (Path rawImagePath : rawImagePaths) {
 			byte[] bytes = Files.readAllBytes(rawImagePath);
 
 			try (InputStream is = new ByteArrayInputStream(bytes)) {
-				BufferedImage rawImage = ImageIO.read(is);
-				System.out.println("theImage+" + rawImage);
+				// 이미지 가로:세로 = 1:1이 되도록 crop
+				BufferedImage resultImage = imageManipulation.cropSquare(is);
+				// thumbnail 이미지 resize
+				BufferedImage thumbImage = imageManipulation.resize(resultImage, 144);
+				// content 이미지 resize
+				BufferedImage contentImage = imageManipulation.resize(resultImage, 430);
 
-				int w = rawImage.getWidth();
-				int h = rawImage.getHeight();
-				boolean isWidthLonger = w > h;
-				int diff = isWidthLonger ? w - h : h - w;
-				int smallSide = isWidthLonger ? h : w;
-				BufferedImage resultImage = new BufferedImage(smallSide, smallSide, 1);
+				File thumbfile = new File(postThumbDirPath + "/" + i + "." + imageExt);
+				ImageIO.write(thumbImage, "jpeg", thumbfile);
 
-				if (isWidthLonger) {
-					resultImage = rawImage.getSubimage(diff / 2, 0, smallSide, smallSide);
-				} else {
-					resultImage = rawImage.getSubimage(0, diff / 2, smallSide, smallSide);
-				}
-
-				File outputfile = new File(localFileUtil.getStaticFilePath("/result" + j + ".jpeg").toString());
-
-				// Writing image in new file created
-				ImageIO.write(resultImage, "jpeg", outputfile);
-
-				j++;
+				File contentfile = new File(postContentDirPath + "/" + i + "." + imageExt);
+				ImageIO.write(contentImage, imageExt, contentfile);
 			}
 
+			i++;
 		}
 	}
 }
