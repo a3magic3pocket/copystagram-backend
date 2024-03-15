@@ -1,6 +1,7 @@
 package com.copystagram.api.global.file;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,11 +32,12 @@ public class LocalFileUtil implements FileUtil {
 		fileUtilResultDto.setOk(true);
 
 		try {
-			InputStream inputStream = input.getInputStream();
-			Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-			inputStream.close();
+			try (InputStream inputStream = input.getInputStream()) {
+				Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
+			}
 		} catch (Exception e) {
-			System.out.println("e: " + e);
+			e.printStackTrace();
+			System.out.println("LocalFileUtil.write e: " + e);
 
 			failedPaths.add(filePath);
 			fileUtilResultDto.setOk(false);
@@ -47,13 +49,36 @@ public class LocalFileUtil implements FileUtil {
 	}
 
 	@Override
-	public FileUtilResultDto write(Map<Path, MultipartFile> fileInfoMap) {
+	public FileUtilResultDto write(byte[] input, Path filePath) {
+		FileUtilResultDto fileUtilResultDto = new FileUtilResultDto();
+		List<Path> failedPaths = new ArrayList<Path>();
+		fileUtilResultDto.setOk(true);
+
+		try {
+			try (FileOutputStream fos = new FileOutputStream(filePath.toString())) {
+				fos.write(input);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			System.out.println("LocalFileUtil.write e: " + e);
+
+			failedPaths.add(filePath);
+			fileUtilResultDto.setOk(false);
+		}
+
+		fileUtilResultDto.setFailedPaths(failedPaths);
+
+		return fileUtilResultDto;
+	}
+
+	@Override
+	public FileUtilResultDto write(Map<Path, byte[]> fileInfoMap) {
 		FileUtilResultDto fileUtilResultDto = new FileUtilResultDto();
 		List<Path> failedPaths = new ArrayList<Path>();
 		fileUtilResultDto.setOk(true);
 
 		for (Path filePath : fileInfoMap.keySet()) {
-			MultipartFile input = fileInfoMap.get(filePath);
+			byte[] input = fileInfoMap.get(filePath);
 			FileUtilResultDto resultDto = write(input, filePath);
 			if (!resultDto.isOk) {
 				failedPaths.add(filePath);

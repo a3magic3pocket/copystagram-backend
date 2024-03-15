@@ -13,4 +13,7 @@ public class GlobalConfig {
 	private String authHintCookieName;
 	private String staticDirPath;
 	private String rootImageDirName;
+	private String rawDirName;
+	private String thumbDirName;
+	private String contentDirName;
 }

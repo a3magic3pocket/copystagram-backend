@@ -1,12 +1,12 @@
 package com.copystagram.api.post;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.NotBlank;
 
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,18 +28,22 @@ public class PostController {
 
 	@PostMapping(value = "/post")
 	public String create(@RequestParam(value = "description") @NotBlank @Max(1000) String desc,
-			@RequestParam(value = "image") @NotBlank MultipartFile[] imageFiles) {
+			@RequestParam(value = "image") @NotBlank MultipartFile[] imageFiles) throws IOException {
 		System.out.println("IN CREATE");
 
-		System.out.println("file: " + imageFiles);
-		for (int i = 0; i < imageFiles.length; i++) {
-			System.out.println("imageFiles[i]" + imageFiles[i]);
-		}
-
-		System.out.println("desc: " + desc);
 		PostCreationDto postCreationDto = new PostCreationDto();
 		postCreationDto.setDescription(desc);
-		postCreationDto.setImageFiles(imageFiles);
+
+		Map<Integer, PostCreationImageDto> imageMap = new HashMap<Integer, PostCreationImageDto>();
+		for (Integer i = 0; i < imageFiles.length; i++) {
+			MultipartFile imageFile = imageFiles[i];
+			PostCreationImageDto postCreationImageDto = new PostCreationImageDto();
+			postCreationImageDto.setImageBytes(imageFile.getBytes());
+			postCreationImageDto.setOriginalFilename(imageFile.getOriginalFilename());
+
+			imageMap.put(i, postCreationImageDto);
+		}
+		postCreationDto.setImageMap(imageMap);
 
 		postService.create(postCreationDto);
 

@@ -1,6 +1,6 @@
 package com.copystagram.api.post;
 
-import org.springframework.web.multipart.MultipartFile;
+import java.util.Map;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -9,5 +9,5 @@ import lombok.Setter;
 @Setter
 public class PostCreationDto {
 	String description;
-	MultipartFile[] imageFiles;
+	Map<Integer, PostCreationImageDto> imageMap;
 }
