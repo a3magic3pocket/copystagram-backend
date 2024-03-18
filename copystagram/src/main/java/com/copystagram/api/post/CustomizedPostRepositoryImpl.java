@@ -7,6 +7,8 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.stereotype.Component;
 
+import com.copystagram.api.global.config.MongodbCollectionName;
+
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
@@ -25,6 +27,6 @@ public class CustomizedPostRepositoryImpl implements CustomizedPostRepository {
 			);
 		// @formatter:on
 
-		return mongoTemplate.aggregate(aggregation, "post", Post.class).getMappedResults();
+		return mongoTemplate.aggregate(aggregation, MongodbCollectionName.POST, Post.class).getMappedResults();
 	}
 }

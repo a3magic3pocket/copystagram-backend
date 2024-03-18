@@ -5,10 +5,12 @@ import java.time.LocalDateTime;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.copystagram.api.global.config.MongodbCollectionName;
+
 import lombok.Getter;
 import lombok.Setter;
 
-@Document(collection = "noti")
+@Document(collection = MongodbCollectionName.NOTI)
 @Getter
 @Setter
 public class Noti {

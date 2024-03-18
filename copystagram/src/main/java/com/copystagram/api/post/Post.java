@@ -6,12 +6,14 @@ import java.util.List;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.copystagram.api.global.config.MongodbCollectionName;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;
 
 @FieldNameConstants
-@Document(collection = "post")
+@Document(collection = MongodbCollectionName.POST)
 @Getter
 @Setter
 public class Post {

@@ -4,10 +4,12 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import com.copystagram.api.global.config.MongodbCollectionName;
+
 import lombok.Getter;
 import lombok.Setter;
 
-@Document(collection = "user")
+@Document(collection = MongodbCollectionName.USER)
 @Getter
 @Setter
 public class User {
