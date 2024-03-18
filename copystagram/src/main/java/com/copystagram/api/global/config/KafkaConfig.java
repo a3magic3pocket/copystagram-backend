@@ -19,6 +19,7 @@ import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
+import com.copystagram.api.noti.NotiCreationKafkaDto;
 import com.copystagram.api.post.PostCreationKafkaDto;
 
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
@@ -32,8 +33,7 @@ public class KafkaConfig {
 	@Value("${spring.kafka.consumer.bootstrap-servers}")
 	private String consumerBootstrapServers;
 
-	@Bean
-	ConsumerFactory<String, Object> consumerFactory(Object valueDefaultType) {
+	ConsumerFactory<String, Object> consumerFactory(String valueDefaultType) {
 		Map<String, Object> configProps = new HashMap<>();
 		configProps.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, consumerBootstrapServers);
 		configProps.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
@@ -45,7 +45,6 @@ public class KafkaConfig {
 		return new DefaultKafkaConsumerFactory<String, Object>(configProps);
 	}
 
-	@Bean
 	ProducerFactory<String, Object> producerFactory() {
 		Map<String, Object> configProps = new HashMap<>();
 		configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, producerBootstrapServers);
@@ -63,7 +62,14 @@ public class KafkaConfig {
 	@Bean
 	ConcurrentKafkaListenerContainerFactory<String, PostCreationKafkaDto> postCreationKafkaListener() {
 		ConcurrentKafkaListenerContainerFactory<String, PostCreationKafkaDto> factory = new ConcurrentKafkaListenerContainerFactory<>();
-		factory.setConsumerFactory(consumerFactory(PostCreationKafkaDto.class));
+		factory.setConsumerFactory(consumerFactory("com.copystagram.api.post.PostCreationKafkaDto"));
+		return factory;
+	}
+
+	@Bean
+	ConcurrentKafkaListenerContainerFactory<String, NotiCreationKafkaDto> notiCreationKafkaListener() {
+		ConcurrentKafkaListenerContainerFactory<String, NotiCreationKafkaDto> factory = new ConcurrentKafkaListenerContainerFactory<>();
+		factory.setConsumerFactory(consumerFactory("com.copystagram.api.noti.NotiCreationKafkaDto"));
 		return factory;
 	}
 }

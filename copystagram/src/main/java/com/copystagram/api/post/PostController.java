@@ -24,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 public class PostController {
 
 	public final PostService postService;
-	public final KafkaTemplate<String, Object> exptKafkaTemplate;
 
 	@PostMapping(value = "/post")
 	public String create(@RequestParam(value = "description") @NotBlank @Max(1000) String desc,

@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import com.copystagram.api.global.config.GlobalConfig;
 import com.copystagram.api.global.file.LocalFileUtil;
 import com.copystagram.api.global.image.ImageManipulation;
+import com.copystagram.api.noti.NotiService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -33,21 +34,23 @@ public class PostService {
 	public final GlobalConfig globalConfig;
 	public final ImageManipulation imageManipulation;
 	public final PostRepository postRepository;
+	public final NotiService notiService;
 	public final KafkaTemplate<String, Object> kafkaTemplate;
 
 	public void create(PostCreationDto postCreationDto) {
 		System.out.println("postCreationDto: " + postCreationDto);
 		String imageDirName = UUID.randomUUID().toString();
-
+		String ownerId = postCreationDto.getOwnerId();
+		
 		CompletableFuture.runAsync(() -> {
 			System.out.println("inner async start");
 			try {
-				saveRowImageFiles(imageDirName, postCreationDto);
+				saveRawImageFiles(imageDirName, postCreationDto);
 
 				PostCreationKafkaDto postCreationKafkaDto = new PostCreationKafkaDto();
 				postCreationKafkaDto.setDescription(postCreationDto.getDescription());
 				postCreationKafkaDto.setImageDirName(imageDirName);
-				postCreationKafkaDto.setOwnerId(postCreationDto.getOwnerId());
+				postCreationKafkaDto.setOwnerId(ownerId);
 
 				this.kafkaTemplate.send("post-creation", postCreationKafkaDto);
 			} catch (Exception e) {
@@ -62,6 +65,8 @@ public class PostService {
 			String imageDirPrefix = "/" + globalConfig.getRootImageDirName() + "/" + imageDirName;
 			Path imageDirPath = localFileUtil.getStaticFilePath(imageDirPrefix);
 			localFileUtil.deleteDir(imageDirPath);
+			
+			notiService.createNoti(ownerId, "POSTC-FAILURE");
 
 			return null;
 		});
@@ -69,7 +74,7 @@ public class PostService {
 		System.out.println("end create PostService");
 	}
 
-	private void saveRowImageFiles(String imageDirName, PostCreationDto postCreationDto) throws IOException {
+	private void saveRawImageFiles(String imageDirName, PostCreationDto postCreationDto) throws IOException {
 		String postRawDirName = "/" + globalConfig.getRootImageDirName() + "/" + imageDirName + "/"
 				+ globalConfig.getRawDirName();
 		Path postRawDirPath = localFileUtil.getStaticFilePath(postRawDirName);
@@ -96,6 +101,7 @@ public class PostService {
 		System.out.println("message.getDescription()" + message.getDescription());
 		System.out.println("message.ImageDirName()" + message.getImageDirName());
 
+		String ownerId = message.getOwnerId();
 		String imageDirName = message.getImageDirName();
 		String postPrefix = "/" + globalConfig.getRootImageDirName() + "/" + imageDirName;
 		Path postRawDirPath = localFileUtil.getStaticFilePath(postPrefix + "/" + globalConfig.getRawDirName());
@@ -157,12 +163,14 @@ public class PostService {
 
 			// DB 처리
 			Post newPost = new Post();
-			newPost.setOwnerId(message.getOwnerId());
+			newPost.setOwnerId(ownerId);
 			newPost.setDescription(message.getDescription());
 			newPost.setImageDirName(message.getImageDirName());
 			newPost.setThumbImagePath(thumbImagePath);
 			newPost.setContentImagePaths(contentImagePaths);
 			postRepository.save(newPost);
+
+			notiService.createNoti(ownerId, "POSTC-SUCCESS");
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.out.println("e: " + e);
@@ -170,6 +178,8 @@ public class PostService {
 			// 실패 시 이미지 디렉토리 삭제
 			Path imageDirPath = localFileUtil.getStaticFilePath(postPrefix);
 			localFileUtil.deleteDir(imageDirPath);
+
+			notiService.createNoti(ownerId, "POSTC-FAILURE");
 		} finally {
 			// raw 이미지 디렉토리 삭제
 			localFileUtil.deleteDir(postRawDirPath);
