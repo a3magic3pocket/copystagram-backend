@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,8 +22,10 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import com.copystagram.api.global.config.GlobalConfig;
+import com.copystagram.api.global.encryption.HashUtil;
 import com.copystagram.api.global.file.LocalFileUtil;
 import com.copystagram.api.global.image.ImageManipulation;
+import com.copystagram.api.noti.Noti;
 import com.copystagram.api.noti.NotiService;
 
 import lombok.RequiredArgsConstructor;
@@ -35,13 +38,14 @@ public class PostService {
 	public final ImageManipulation imageManipulation;
 	public final PostRepository postRepository;
 	public final NotiService notiService;
+	public final HashUtil hashUtil;
 	public final KafkaTemplate<String, Object> kafkaTemplate;
 
 	public void create(PostCreationDto postCreationDto) {
 		System.out.println("postCreationDto: " + postCreationDto);
 		String imageDirName = UUID.randomUUID().toString();
 		String ownerId = postCreationDto.getOwnerId();
-		
+
 		CompletableFuture.runAsync(() -> {
 			System.out.println("inner async start");
 			try {
@@ -51,6 +55,7 @@ public class PostService {
 				postCreationKafkaDto.setDescription(postCreationDto.getDescription());
 				postCreationKafkaDto.setImageDirName(imageDirName);
 				postCreationKafkaDto.setOwnerId(ownerId);
+				postCreationKafkaDto.setCreatedAt(LocalDateTime.now());
 
 				this.kafkaTemplate.send("post-creation", postCreationKafkaDto);
 			} catch (Exception e) {
@@ -65,7 +70,7 @@ public class PostService {
 			String imageDirPrefix = "/" + globalConfig.getRootImageDirName() + "/" + imageDirName;
 			Path imageDirPath = localFileUtil.getStaticFilePath(imageDirPrefix);
 			localFileUtil.deleteDir(imageDirPath);
-			
+
 			notiService.createNoti(ownerId, "POSTC-FAILURE");
 
 			return null;
@@ -162,12 +167,17 @@ public class PostService {
 			}
 
 			// DB 처리
+			String source = message.getDescription() + message.getImageDirName() + thumbImagePath + contentImagePaths
+					+ message.getCreatedAt();
+
 			Post newPost = new Post();
 			newPost.setOwnerId(ownerId);
 			newPost.setDescription(message.getDescription());
 			newPost.setImageDirName(message.getImageDirName());
 			newPost.setThumbImagePath(thumbImagePath);
 			newPost.setContentImagePaths(contentImagePaths);
+			newPost.setCreatedAt(message.getCreatedAt());
+			newPost.setDocHash(hashUtil.getSha256Hash(source));
 			postRepository.save(newPost);
 
 			notiService.createNoti(ownerId, "POSTC-SUCCESS");

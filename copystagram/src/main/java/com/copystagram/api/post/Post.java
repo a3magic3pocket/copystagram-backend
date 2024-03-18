@@ -1,5 +1,6 @@
 package com.copystagram.api.post;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.annotation.Id;
@@ -20,4 +21,6 @@ public class Post {
 	public String imageDirName;
 	public String thumbImagePath;
 	public List<String> contentImagePaths;
+	public byte[] docHash;
+	public LocalDateTime createdAt;
 }

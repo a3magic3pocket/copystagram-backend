@@ -7,7 +7,6 @@ import java.util.Map;
 import javax.validation.constraints.Max;
 import javax.validation.constraints.NotBlank;
 
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
