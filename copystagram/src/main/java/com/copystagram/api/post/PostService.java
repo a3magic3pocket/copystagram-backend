@@ -58,7 +58,7 @@ public class PostService {
 			System.out.println("e: " + e);
 			System.out.println("come in exceptionally");
 
-			// raw 이미지 디렉토리 삭제
+			// 실패 시 이미지 디렉토리 삭제
 			String imageDirPrefix = "/" + globalConfig.getRootImageDirName() + "/" + imageDirName;
 			Path imageDirPath = localFileUtil.getStaticFilePath(imageDirPrefix);
 			localFileUtil.deleteDir(imageDirPath);
@@ -166,6 +166,10 @@ public class PostService {
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.out.println("e: " + e);
+
+			// 실패 시 이미지 디렉토리 삭제
+			Path imageDirPath = localFileUtil.getStaticFilePath(postPrefix);
+			localFileUtil.deleteDir(imageDirPath);
 		} finally {
 			// raw 이미지 디렉토리 삭제
 			localFileUtil.deleteDir(postRawDirPath);
