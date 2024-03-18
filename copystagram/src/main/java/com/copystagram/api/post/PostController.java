@@ -2,6 +2,7 @@ package com.copystagram.api.post;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.validation.constraints.Max;
@@ -15,13 +16,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.mongodb.lang.Nullable;
+
 import lombok.RequiredArgsConstructor;
 
 @RequestMapping(value = "/v1")
 @RequiredArgsConstructor
 @RestController
 public class PostController {
-
 	public final PostService postService;
 
 	@PostMapping(value = "/post")
@@ -47,14 +49,16 @@ public class PostController {
 
 		postService.create(postCreationDto);
 
-		return "create";
+		return "success";
 	}
 
 	@GetMapping("/posts")
-	public String list(Authentication auth) {
-		Object a = auth.getPrincipal();
-		System.out.println(a);
-		return "posts";
-	}
+	public List<Post> list(@RequestParam(value = "page-num", required = false) @Nullable Integer pageNum) {
+		int pageSize = 20;
+		if (pageNum == null || pageNum <= 0) {
+			pageNum = 1;
+		}
 
+		return postService.getLatestList(pageNum, pageSize);
+	}
 }

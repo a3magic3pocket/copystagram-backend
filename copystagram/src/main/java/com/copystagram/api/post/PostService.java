@@ -25,7 +25,6 @@ import com.copystagram.api.global.config.GlobalConfig;
 import com.copystagram.api.global.encryption.HashUtil;
 import com.copystagram.api.global.file.LocalFileUtil;
 import com.copystagram.api.global.image.ImageManipulation;
-import com.copystagram.api.noti.Noti;
 import com.copystagram.api.noti.NotiService;
 
 import lombok.RequiredArgsConstructor;
@@ -194,5 +193,11 @@ public class PostService {
 			// raw 이미지 디렉토리 삭제
 			localFileUtil.deleteDir(postRawDirPath);
 		}
+	}
+
+	public List<Post> getLatestList(int pageNum, int pageSize) {
+		int skip = (pageNum - 1) * pageSize;
+
+		return postRepository.getLatestList(skip, pageSize);
 	}
 }
