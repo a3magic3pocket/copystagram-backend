@@ -1,9 +1,11 @@
 package com.copystagram.api.noti;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
 import com.copystagram.api.global.encryption.HashUtil;
@@ -36,7 +38,7 @@ public class NotiService {
 	}
 
 	@KafkaListener(topics = "noti-creation", groupId = "noti-creation", containerFactory = "notiCreationKafkaListener")
-	private void consumeNotiCreation(NotiCreationKafkaDto message) {
+	private void consumeNotiCreation(NotiCreationKafkaDto message, Acknowledgment acknowledgment) {
 		try {
 			String content = message.getContent();
 			String ownerId = message.getOwnerId();
@@ -49,11 +51,14 @@ public class NotiService {
 			noti.setCreateAt(createdAt);
 			noti.setDocHash(hashUtil.getSha256Hash(source));
 			notiRepository.save(noti);
+			acknowledgment.acknowledge();
 		} catch (DuplicateKeyException e) {
 			// pass
+			acknowledgment.acknowledge();
 		} catch (Exception e) {
 			e.printStackTrace();
 			System.out.println("NotiService.consumeNotiCreation e: " + e);
+			acknowledgment.nack(Duration.ofMinutes(4));
 		}
 	}
 }

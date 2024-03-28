@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,6 +21,7 @@ import javax.imageio.ImageIO;
 
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 import com.copystagram.api.global.config.GlobalConfig;
 import com.copystagram.api.global.encryption.HashUtil;
@@ -100,7 +102,7 @@ public class PostService {
 	}
 
 	@KafkaListener(topics = "post-creation", groupId = "post-creation", containerFactory = "postCreationKafkaListener")
-	private void consumePostCreation(PostCreationKafkaDto message) {
+	private void consumePostCreation(PostCreationKafkaDto message, Acknowledgment acknowledgment) {
 		System.out.println("receive message: " + message);
 		System.out.println("message.getDescription()" + message.getDescription());
 		System.out.println("message.ImageDirName()" + message.getImageDirName());
@@ -180,6 +182,8 @@ public class PostService {
 			postRepository.save(newPost);
 
 			notiService.createNoti(ownerId, "POSTC-SUCCESS");
+
+			acknowledgment.acknowledge();
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.out.println("e: " + e);
@@ -189,6 +193,8 @@ public class PostService {
 			localFileUtil.deleteDir(imageDirPath);
 
 			notiService.createNoti(ownerId, "POSTC-FAILURE");
+
+			acknowledgment.nack(Duration.ofMinutes(4));
 		} finally {
 			// raw 이미지 디렉토리 삭제
 			localFileUtil.deleteDir(postRawDirPath);
