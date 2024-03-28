@@ -10,4 +10,5 @@ public class UserRespDto {
 	public String name;
 	public String locale;
 	public String description;
+	public String userImagePath;
 }

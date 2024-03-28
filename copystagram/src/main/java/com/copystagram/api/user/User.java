@@ -23,6 +23,7 @@ public class User {
 	public String locale;
 	public String provider;
 	public String description;
+	public String userImagePath;
 	public UserRole role;
 	public Boolean isActive;
 }
