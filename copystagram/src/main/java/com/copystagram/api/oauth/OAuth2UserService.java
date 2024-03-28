@@ -69,6 +69,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
 		String openId = (String) attributes.getOrDefault("sub", "");
 		String name = (String) attributes.getOrDefault("name", "");
 		String locale = (String) attributes.getOrDefault("locale", "");
+		String defaultDescription = "Hello copystagram :)";
 
 		User user = userRepository.findByEmail(email);
 		if (user == null) {
@@ -80,6 +81,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
 			newUser.setProvider(provider);
 			newUser.setRole(UserRole.NORMAL);
 			newUser.setIsActive(true);
+			newUser.setDescription(defaultDescription);
 			User createdUser = userRepository.save(newUser);
 
 			return createdUser;

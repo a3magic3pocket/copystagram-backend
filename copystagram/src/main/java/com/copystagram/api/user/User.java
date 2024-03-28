@@ -22,6 +22,7 @@ public class User {
 	public String name;
 	public String locale;
 	public String provider;
+	public String description;
 	public UserRole role;
 	public Boolean isActive;
 }
