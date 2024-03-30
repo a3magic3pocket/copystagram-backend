@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -92,6 +91,7 @@ public class PostService {
 		Map<Integer, PostCreationImageDto> imageMap = postCreationDto.getImageMap();
 		for (Integer i : imageMap.keySet()) {
 			PostCreationImageDto postCreationImageDto = imageMap.get(i);
+			System.out.println(i + "     " + postCreationImageDto.getOriginalFilename());
 			String imageName = "/" + i + "_" + postCreationImageDto.getOriginalFilename();
 			Path imagePath = localFileUtil.getStaticFilePath(postRawDirName + imageName);
 
@@ -124,12 +124,13 @@ public class PostService {
 			Files.createDirectories(postThumbDirPath);
 			Files.createDirectories(postContentDirPath);
 
-			Set<Path> rawImagePaths = localFileUtil.getFilePaths(postRawDirPath);
+			List<Path> rawImagePaths = localFileUtil.getFilePaths(postRawDirPath);
 			System.out.println("rawImagePaths+" + rawImagePaths);
 
 			int i = 0;
 			String imageExt = "jpeg";
 			for (Path rawImagePath : rawImagePaths) {
+				System.out.println("     " + rawImagePath);
 				byte[] bytes = Files.readAllBytes(rawImagePath);
 
 				try (InputStream is = new ByteArrayInputStream(bytes)) {
@@ -196,14 +197,35 @@ public class PostService {
 
 			acknowledgment.nack(Duration.ofMinutes(4));
 		} finally {
+			System.out.println("come in final?" + postRawDirPath);
 			// raw 이미지 디렉토리 삭제
 			localFileUtil.deleteDir(postRawDirPath);
 		}
 	}
 
-	public List<Post> getLatestList(int pageNum, int pageSize) {
+	public PostListDto getLatestAllPosts(int pageNum, int pageSize) {
 		int skip = (pageNum - 1) * pageSize;
 
-		return postRepository.getLatestList(skip, pageSize);
+		List<Post> posts = postRepository.getLatestAllPosts(skip, pageSize);
+
+		PostListDto postListDto = new PostListDto();
+		postListDto.setPageNum(pageNum);
+		postListDto.setPageSize(posts.size());
+		postListDto.setPostRetrDtos(posts);
+
+		return postListDto;
+	}
+
+	public PostListDto getLatestPosts(int pageNum, int pageSize, String id) {
+		int skip = (pageNum - 1) * pageSize;
+
+		List<Post> posts = postRepository.getLatestPosts(skip, pageSize, id);
+
+		PostListDto postListDto = new PostListDto();
+		postListDto.setPageNum(pageNum);
+		postListDto.setPageSize(posts.size());
+		postListDto.setPostRetrDtos(posts);
+
+		return postListDto;
 	}
 }

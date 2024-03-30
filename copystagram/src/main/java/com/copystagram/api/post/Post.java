@@ -21,6 +21,7 @@ public class Post {
 	public String _id;
 
 	public String ownerId;
+	public String ownerName;
 	public String description;
 	public String imageDirName;
 	public String thumbImagePath;

@@ -2,12 +2,13 @@ package com.copystagram.api.post;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.NotBlank;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.copystagram.api.global.dto.ErrorRespDto;
 import com.mongodb.lang.Nullable;
 
 import lombok.RequiredArgsConstructor;
@@ -41,6 +43,7 @@ public class PostController {
 			PostCreationImageDto postCreationImageDto = new PostCreationImageDto();
 			postCreationImageDto.setImageBytes(imageFile.getBytes());
 			postCreationImageDto.setOriginalFilename(imageFile.getOriginalFilename());
+			System.out.println(i +"   " + imageFile.getOriginalFilename());
 
 			imageMap.put(i, postCreationImageDto);
 		}
@@ -53,12 +56,32 @@ public class PostController {
 	}
 
 	@GetMapping("/posts")
-	public List<Post> list(@RequestParam(value = "page-num", required = false) @Nullable Integer pageNum) {
+	public PostListDto list(@RequestParam(value = "page-num", required = false) @Nullable Integer pageNum) {
 		int pageSize = 20;
 		if (pageNum == null || pageNum <= 0) {
 			pageNum = 1;
 		}
 
-		return postService.getLatestList(pageNum, pageSize);
+		return postService.getLatestAllPosts(pageNum, pageSize);
+	}
+
+	@GetMapping("/my-posts")
+	public ResponseEntity<?> listMyPosts(@RequestParam(value = "page-num", required = false) @Nullable Integer pageNum,
+			Authentication authToken) {
+		if (authToken == null) {
+			ErrorRespDto errorRespDto = new ErrorRespDto("9999", "ko", "없는 유저 입니다");
+			return new ResponseEntity<>(errorRespDto, HttpStatus.UNPROCESSABLE_ENTITY);
+		}
+
+		int pageSize = 20;
+		if (pageNum == null || pageNum <= 0) {
+			pageNum = 1;
+		}
+		System.out.println("authToken"+authToken);
+		System.out.println("authToken.getName()"+authToken.getName());
+
+		PostListDto posts = postService.getLatestPosts(pageNum, pageSize, authToken.getName());
+
+		return new ResponseEntity<>(posts, HttpStatus.OK);
 	}
 }

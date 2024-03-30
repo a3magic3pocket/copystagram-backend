@@ -51,8 +51,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
 		// newAttribute 할당
 		Map<String, Object> newAttributes = new HashMap<String, Object>();
 		newAttributes.put(userNameAttributeName, user.get_id());
-		newAttributes.put(OAuth2UserKey.OPEN_ID.getValue(), user.getOpenId());
-		newAttributes.put(OAuth2UserKey.EMAIL.getValue(), user.getEmail());
+		newAttributes.put(OAuth2UserKey.NAME.getValue(), user.getName());
 		newAttributes.put(OAuth2UserKey.IS_ACTIVE.getValue(), user.getIsActive());
 
 		return new DefaultOAuth2User(authorities, newAttributes, userNameAttributeName);

@@ -1,7 +1,7 @@
 package com.copystagram.api.oauth;
 
 public enum OAuth2UserKey {
-	OPEN_ID("openId"), EMAIL("email"), IS_ACTIVE("isActive");
+	OPEN_ID("openId"), EMAIL("email"), IS_ACTIVE("isActive"), NAME("name");
 
 	private String value;
 

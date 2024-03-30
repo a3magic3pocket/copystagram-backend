@@ -27,7 +27,7 @@ public class SecurityGroup {
         	.csrf(AbstractHttpConfigurer::disable)
         	.addFilterAfter(new AuthActiveFilter(), AuthorizationFilter.class)
         	.authorizeHttpRequests((a) -> a
-        					.requestMatchers("/v1/user-info/me").authenticated()
+        					.requestMatchers("/v1/my-user-info").authenticated()
                             .requestMatchers("/v1/posts").authenticated()
                             .requestMatchers("/v1/auth/logout").authenticated()
                             .requestMatchers("/v1/post/**").hasRole(UserRole.NORMAL.toString())
