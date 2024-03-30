@@ -9,10 +9,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -152,10 +150,10 @@ public class LocalFileUtil implements FileUtil {
 	}
 
 	@Override
-	public Set<Path> getFilePaths(Path dirPath) throws IOException {
-		Set<Path> filePaths = new HashSet<Path>();
+	public List<Path> getFilePaths(Path dirPath) throws IOException {
+		List<Path> filePaths = new ArrayList<Path>();
 		try (Stream<Path> stream = Files.list(dirPath)) {
-			filePaths = stream.filter(file -> !Files.isDirectory(file)).collect(Collectors.toSet());
+			filePaths = stream.filter(file -> !Files.isDirectory(file)).sorted().collect(Collectors.toList());
 		}
 
 		return filePaths;

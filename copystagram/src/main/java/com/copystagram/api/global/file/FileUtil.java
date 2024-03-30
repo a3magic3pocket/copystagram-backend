@@ -2,8 +2,8 @@ package com.copystagram.api.global.file;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,5 +20,5 @@ public interface FileUtil {
 
 	public FileUtilResultDto deleteDir(Path dirPath);
 
-	public Set<Path> getFilePaths(Path dirPath) throws IOException;
+	public List<Path> getFilePaths(Path dirPath) throws IOException;
 }
