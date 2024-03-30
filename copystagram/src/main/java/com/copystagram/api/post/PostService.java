@@ -206,7 +206,7 @@ public class PostService {
 	public PostListDto getLatestAllPosts(int pageNum, int pageSize) {
 		int skip = (pageNum - 1) * pageSize;
 
-		List<Post> posts = postRepository.getLatestAllPosts(skip, pageSize);
+		List<PostRetrDto> posts = postRepository.getLatestAllPosts(skip, pageSize);
 
 		PostListDto postListDto = new PostListDto();
 		postListDto.setPageNum(pageNum);
@@ -219,7 +219,7 @@ public class PostService {
 	public PostListDto getLatestPosts(int pageNum, int pageSize, String id) {
 		int skip = (pageNum - 1) * pageSize;
 
-		List<Post> posts = postRepository.getLatestPosts(skip, pageSize, id);
+		List<PostRetrDto> posts = postRepository.getLatestPosts(skip, pageSize, id);
 
 		PostListDto postListDto = new PostListDto();
 		postListDto.setPageNum(pageNum);

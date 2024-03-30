@@ -8,8 +8,10 @@ import com.copystagram.api.global.config.MongodbCollectionName;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.experimental.FieldNameConstants;
 
 @Document(collection = MongodbCollectionName.USER)
+@FieldNameConstants
 @Getter
 @Setter
 public class User {

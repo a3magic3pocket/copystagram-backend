@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import com.copystagram.api.global.config.MongodbCollectionName;
 
@@ -17,6 +19,7 @@ public class Noti {
 	@Id
 	public String _id;
 
+	@Field(targetType = FieldType.OBJECT_ID)
 	public String ownerId;
 	public String content;
 	public byte[] docHash;
