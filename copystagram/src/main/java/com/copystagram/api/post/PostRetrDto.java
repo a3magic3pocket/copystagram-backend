@@ -3,8 +3,6 @@ package com.copystagram.api.post;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.copystagram.api.user.User;
-
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldNameConstants;

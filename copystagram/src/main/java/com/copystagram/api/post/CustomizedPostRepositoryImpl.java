@@ -3,11 +3,9 @@ package com.copystagram.api.post;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.tomcat.util.bcel.Const;
 import org.bson.types.ObjectId;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.aggregation.AddFieldsOperation;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
 import org.springframework.data.mongodb.core.aggregation.ArrayOperators.ArrayElemAt;
@@ -57,7 +55,7 @@ public class CustomizedPostRepositoryImpl implements CustomizedPostRepository {
 		Aggregation aggregation = Aggregation.newAggregation(opsList);
 
 		return mongoTemplate.aggregate(aggregation, MongodbCollectionName.POST, PostRetrDto.class).getMappedResults();
-	}
+	}	
 
 	@Override
 	public List<PostRetrDto> getLatestAllPosts(int skip, int limit) {
