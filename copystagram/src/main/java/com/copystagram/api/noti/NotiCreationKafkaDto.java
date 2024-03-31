@@ -10,5 +10,6 @@ import lombok.Setter;
 public class NotiCreationKafkaDto {
 	String ownerId;
 	String content;
+	String relatedPostId;
 	LocalDateTime createdAt;
 }

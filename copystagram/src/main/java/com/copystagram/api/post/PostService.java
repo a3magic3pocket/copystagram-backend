@@ -71,7 +71,7 @@ public class PostService {
 			Path imageDirPath = localFileUtil.getStaticFilePath(imageDirPrefix);
 			localFileUtil.deleteDir(imageDirPath);
 
-			notiService.createNoti(ownerId, "POSTC-FAILURE");
+			notiService.createNoti(ownerId, "POSTC-FAILURE", null);
 
 			return null;
 		});
@@ -180,9 +180,9 @@ public class PostService {
 			newPost.setContentImagePaths(contentImagePaths);
 			newPost.setCreatedAt(message.getCreatedAt());
 			newPost.setDocHash(hashUtil.getSha256Hash(source));
-			postRepository.save(newPost);
+			Post newPostResult = postRepository.save(newPost);
 
-			notiService.createNoti(ownerId, "POSTC-SUCCESS");
+			notiService.createNoti(ownerId, "POSTC-SUCCESS", newPostResult.get_id());
 
 			acknowledgment.acknowledge();
 		} catch (IOException e) {
@@ -193,7 +193,7 @@ public class PostService {
 			Path imageDirPath = localFileUtil.getStaticFilePath(postPrefix);
 			localFileUtil.deleteDir(imageDirPath);
 
-			notiService.createNoti(ownerId, "POSTC-FAILURE");
+			notiService.createNoti(ownerId, "POSTC-FAILURE", null);
 
 			acknowledgment.nack(Duration.ofMinutes(4));
 		} finally {

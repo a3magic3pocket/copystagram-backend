@@ -2,6 +2,7 @@ package com.copystagram.api.noti;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -9,6 +10,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
 import com.copystagram.api.global.encryption.HashUtil;
+
 import org.springframework.dao.DuplicateKeyException;
 
 import lombok.RequiredArgsConstructor;
@@ -21,7 +23,7 @@ public class NotiService {
 	public final HashUtil hashUtil;
 	public final KafkaTemplate<String, Object> kafkaTemplate;
 
-	public boolean createNoti(String to, String code) {
+	public boolean createNoti(String to, String code, String relatedPostId) {
 		NotiMap notiMap = notiMapRepository.findByCode(code);
 		if (notiMap == null) {
 			System.out.println("createNoti::code not exists+" + code);
@@ -29,8 +31,9 @@ public class NotiService {
 		}
 
 		NotiCreationKafkaDto notiCreationKafkaDto = new NotiCreationKafkaDto();
-		notiCreationKafkaDto.setContent(notiMap.content);
+		notiCreationKafkaDto.setContent(notiMap.getContent());
 		notiCreationKafkaDto.setOwnerId(to);
+		notiCreationKafkaDto.setRelatedPostId(relatedPostId);
 		notiCreationKafkaDto.setCreatedAt(LocalDateTime.now());
 
 		this.kafkaTemplate.send("noti-creation", notiCreationKafkaDto);
@@ -42,13 +45,16 @@ public class NotiService {
 		try {
 			String content = message.getContent();
 			String ownerId = message.getOwnerId();
+			String relatedPostId = message.getRelatedPostId();
 			LocalDateTime createdAt = message.getCreatedAt();
-			String source = content + ownerId + createdAt;
+			String source = content + ownerId + relatedPostId + createdAt;
 
 			Noti noti = new Noti();
 			noti.setContent(content);
 			noti.setOwnerId(ownerId);
-			noti.setCreateAt(createdAt);
+			noti.setCreatedAt(createdAt);
+			noti.setRelatedPostId(relatedPostId);
+			noti.setContent(content);
 			noti.setDocHash(hashUtil.getSha256Hash(source));
 			notiRepository.save(noti);
 			acknowledgment.acknowledge();
@@ -60,5 +66,18 @@ public class NotiService {
 			System.out.println("NotiService.consumeNotiCreation e: " + e);
 			acknowledgment.nack(Duration.ofMinutes(4));
 		}
+	}
+
+	public NotiListDto getLatestNotis(int pageNum, int pageSize, String id) {
+		int skip = (pageNum - 1) * pageSize;
+
+		List<NotiRetrDto> notis = notiRepository.getLatestNotis(skip, pageSize, id);
+
+		NotiListDto notiListDto = new NotiListDto();
+		notiListDto.setPageNum(pageNum);
+		notiListDto.setPageSize(notis.size());
+		notiListDto.setNotifications(notis);
+
+		return notiListDto;
 	}
 }

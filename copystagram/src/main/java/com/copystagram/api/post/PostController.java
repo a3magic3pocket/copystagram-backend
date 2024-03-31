@@ -77,8 +77,6 @@ public class PostController {
 		if (pageNum == null || pageNum <= 0) {
 			pageNum = 1;
 		}
-		System.out.println("authToken"+authToken);
-		System.out.println("authToken.getName()"+authToken.getName());
 
 		PostListDto posts = postService.getLatestPosts(pageNum, pageSize, authToken.getName());
 

@@ -5,6 +5,8 @@ import javax.validation.constraints.NotNull;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.Field.Write;
 
 import com.copystagram.api.global.config.MongodbCollectionName;
 
@@ -40,7 +42,12 @@ public class User {
 	@NotNull(message = "isActive is required")
 	public Boolean isActive;
 	
+	@Field(write = Write.ALWAYS)
 	public String locale;
+	
+	@Field(write = Write.ALWAYS)
 	public String description;
+	
+	@Field(write = Write.ALWAYS)
 	public String userImagePath;
 }
