@@ -57,7 +57,7 @@ public class PostController {
 
 	@GetMapping("/posts")
 	public PostListDto list(@RequestParam(value = "page-num", required = false) @Nullable Integer pageNum) {
-		int pageSize = 20;
+		int pageSize = 9;
 		if (pageNum == null || pageNum <= 0) {
 			pageNum = 1;
 		}
@@ -73,7 +73,7 @@ public class PostController {
 			return new ResponseEntity<>(errorRespDto, HttpStatus.UNPROCESSABLE_ENTITY);
 		}
 
-		int pageSize = 20;
+		int pageSize = 9;
 		if (pageNum == null || pageNum <= 0) {
 			pageNum = 1;
 		}

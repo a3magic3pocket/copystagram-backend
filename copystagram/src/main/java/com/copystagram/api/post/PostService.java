@@ -211,7 +211,7 @@ public class PostService {
 		PostListDto postListDto = new PostListDto();
 		postListDto.setPageNum(pageNum);
 		postListDto.setPageSize(posts.size());
-		postListDto.setPostRetrDtos(posts);
+		postListDto.setPosts(posts);
 
 		return postListDto;
 	}
@@ -224,7 +224,7 @@ public class PostService {
 		PostListDto postListDto = new PostListDto();
 		postListDto.setPageNum(pageNum);
 		postListDto.setPageSize(posts.size());
-		postListDto.setPostRetrDtos(posts);
+		postListDto.setPosts(posts);
 
 		return postListDto;
 	}

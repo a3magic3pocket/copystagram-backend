@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.tomcat.util.bcel.Const;
+import org.bson.types.ObjectId;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.AddFieldsOperation;
@@ -66,7 +67,7 @@ public class CustomizedPostRepositoryImpl implements CustomizedPostRepository {
 
 	@Override
 	public List<PostRetrDto> getLatestPosts(int skip, int limit, String id) {
-		List<Criteria> criteriaList = List.of(Criteria.where(Post.Fields.ownerId).is(id));
+		List<Criteria> criteriaList = List.of(Criteria.where(Post.Fields.ownerId).is(new ObjectId(id)));
 
 		return this.getLatesPostsLogic(skip, limit, criteriaList);
 	}

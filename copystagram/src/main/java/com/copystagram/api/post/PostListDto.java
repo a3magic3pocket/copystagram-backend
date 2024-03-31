@@ -10,5 +10,5 @@ import lombok.Setter;
 public class PostListDto {
 	public int pageNum;
 	public int pageSize;
-	public List<PostRetrDto> postRetrDtos;
+	public List<PostRetrDto> posts;
 }
