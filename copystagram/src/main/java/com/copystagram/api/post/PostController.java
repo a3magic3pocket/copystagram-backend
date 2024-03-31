@@ -43,7 +43,7 @@ public class PostController {
 			PostCreationImageDto postCreationImageDto = new PostCreationImageDto();
 			postCreationImageDto.setImageBytes(imageFile.getBytes());
 			postCreationImageDto.setOriginalFilename(imageFile.getOriginalFilename());
-			System.out.println(i +"   " + imageFile.getOriginalFilename());
+			System.out.println(i + "   " + imageFile.getOriginalFilename());
 
 			imageMap.put(i, postCreationImageDto);
 		}
@@ -82,4 +82,16 @@ public class PostController {
 
 		return new ResponseEntity<>(posts, HttpStatus.OK);
 	}
+
+	@GetMapping("/my-posts/count")
+	public ResponseEntity<?> countMyPosts(Authentication authToken) {
+		if (authToken == null) {
+			ErrorRespDto errorRespDto = new ErrorRespDto("9999", "ko", "없는 유저 입니다");
+			return new ResponseEntity<>(errorRespDto, HttpStatus.UNPROCESSABLE_ENTITY);
+		}
+		PostCountDto postCountDto = postService.countPostsById(authToken.getName());
+
+		return new ResponseEntity<>(postCountDto, HttpStatus.OK);
+	}
+
 }

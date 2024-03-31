@@ -228,4 +228,8 @@ public class PostService {
 
 		return postListDto;
 	}
+
+	public PostCountDto countPostsById(String id) {
+		return postRepository.countPostsById(id);
+	}
 }

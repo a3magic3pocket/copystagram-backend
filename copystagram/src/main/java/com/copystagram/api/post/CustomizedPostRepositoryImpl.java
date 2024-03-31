@@ -55,7 +55,7 @@ public class CustomizedPostRepositoryImpl implements CustomizedPostRepository {
 		Aggregation aggregation = Aggregation.newAggregation(opsList);
 
 		return mongoTemplate.aggregate(aggregation, MongodbCollectionName.POST, PostRetrDto.class).getMappedResults();
-	}	
+	}
 
 	@Override
 	public List<PostRetrDto> getLatestAllPosts(int skip, int limit) {
@@ -68,5 +68,19 @@ public class CustomizedPostRepositoryImpl implements CustomizedPostRepository {
 		List<Criteria> criteriaList = List.of(Criteria.where(Post.Fields.ownerId).is(new ObjectId(id)));
 
 		return this.getLatesPostsLogic(skip, limit, criteriaList);
+	}
+
+	@Override
+	public PostCountDto countPostsById(String id) {
+		Criteria criteria = Criteria.where(Post.Fields.ownerId).is(new ObjectId(id));
+
+		List<AggregationOperation> opsList = new ArrayList<>();
+		opsList.add(Aggregation.match(criteria));
+		opsList.add(Aggregation.count().as("count"));
+
+		Aggregation aggregation = Aggregation.newAggregation(opsList);
+
+		return mongoTemplate.aggregate(aggregation, MongodbCollectionName.POST, PostCountDto.class).getMappedResults()
+				.getFirst();
 	}
 }
