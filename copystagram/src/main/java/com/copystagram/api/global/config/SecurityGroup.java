@@ -30,7 +30,6 @@ public class SecurityGroup {
         					.requestMatchers("/v1/my-user-info").authenticated()
         					.requestMatchers("/v1/my-posts").authenticated()
                             .requestMatchers("/v1/my-posts/count").authenticated()
-                            .requestMatchers("/v1/posts").authenticated()
                             .requestMatchers("/v1/my-notifications").authenticated()
                             .requestMatchers("/v1/auth/logout").authenticated()
 //                            .requestMatchers("/v1/post/**").hasRole(UserRole.NORMAL.toString())

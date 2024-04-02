@@ -43,12 +43,6 @@ public class PostController {
 			@Valid @NotBlank(message = "문구를 입력주세요.") @Size(max = 1000, message = "문구는 1000자 이하만 입력할 수 있습니다.") @RequestParam(value = "description") String desc,
 			@Valid @NotNull(message = "이미지 파일을 1개 이상 추가해야 합니다.") @RequestParam(value = "image") MultipartFile[] imageFiles,
 			Authentication authToken) throws IOException {
-		System.out.println("IN CREATE");
-		System.out.println("desc+++" + desc);
-
-		if (true) {
-			return "create";
-		}
 
 		PostCreationDto postCreationDto = new PostCreationDto();
 		postCreationDto.setDescription(desc);
