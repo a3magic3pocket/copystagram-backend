@@ -4,35 +4,51 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.validation.constraints.Max;
-import javax.validation.constraints.NotBlank;
+import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.copystagram.api.global.dto.ErrorRespDto;
 import com.mongodb.lang.Nullable;
 
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.ValidationException;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 
 @RequestMapping(value = "/v1")
 @RequiredArgsConstructor
 @RestController
+@Validated
 public class PostController {
 	public final PostService postService;
 
 	@PostMapping(value = "/post")
-	public String create(@RequestParam(value = "description") @NotBlank @Max(1000) String desc,
-			@RequestParam(value = "image") @NotBlank MultipartFile[] imageFiles, Authentication authToken)
-			throws IOException {
+	public String create(
+			@Valid @NotBlank(message = "문구를 입력주세요.") @Size(max = 1000, message = "문구는 1000자 이하만 입력할 수 있습니다.") @RequestParam(value = "description") String desc,
+			@Valid @NotNull(message = "이미지 파일을 1개 이상 추가해야 합니다.") @RequestParam(value = "image") MultipartFile[] imageFiles,
+			Authentication authToken) throws IOException {
 		System.out.println("IN CREATE");
+		System.out.println("desc+++" + desc);
+
+		if (true) {
+			return "create";
+		}
 
 		PostCreationDto postCreationDto = new PostCreationDto();
 		postCreationDto.setDescription(desc);
