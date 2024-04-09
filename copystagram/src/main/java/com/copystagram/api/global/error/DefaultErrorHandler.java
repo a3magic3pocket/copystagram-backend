@@ -3,10 +3,8 @@ package com.copystagram.api.global.error;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.data.mongodb.core.aggregation.BooleanOperators.And;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.support.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;

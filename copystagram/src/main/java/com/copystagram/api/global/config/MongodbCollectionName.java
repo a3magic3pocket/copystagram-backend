@@ -5,4 +5,5 @@ public class MongodbCollectionName {
 	public static final String POST = "post";
 	public static final String NOTI = "noti";
 	public static final String NOTI_MAP = "notiMap";
+	public static final String LIKE = "like";
 }

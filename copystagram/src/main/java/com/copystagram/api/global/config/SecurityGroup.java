@@ -11,7 +11,6 @@ import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 
 import com.copystagram.api.oauth.AuthActiveFilter;
-import com.copystagram.api.user.UserRole;
 
 import lombok.RequiredArgsConstructor;
 
@@ -31,6 +30,7 @@ public class SecurityGroup {
         					.requestMatchers("/v1/my-posts").authenticated()
                             .requestMatchers("/v1/my-posts/count").authenticated()
                             .requestMatchers("/v1/my-notifications").authenticated()
+                            .requestMatchers("/v1/like/**").authenticated()
                             .requestMatchers("/v1/auth/logout").authenticated()
 //                            .requestMatchers("/v1/post/**").hasRole(UserRole.NORMAL.toString())
                             .anyRequest().permitAll()
