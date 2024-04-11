@@ -6,6 +6,6 @@ public interface CustomizedPostRepository {
 	public List<PostRetrDto> getLatestAllPosts(int skip, int limit);
 
 	public List<PostRetrDto> getLatestPosts(int skip, int limit, String id);
-	
+
 	public PostCountDto countPostsById(String id);
 }

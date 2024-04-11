@@ -8,8 +8,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
+import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 import org.springframework.data.mongodb.core.aggregation.ArrayOperators.ArrayElemAt;
+import org.springframework.data.mongodb.core.aggregation.Fields;
 import org.springframework.data.mongodb.core.aggregation.LookupOperation;
+import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import org.springframework.data.mongodb.core.aggregation.SetOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Component;
@@ -39,15 +42,22 @@ public class CustomizedPostRepositoryImpl implements CustomizedPostRepository {
  				.foreignField(User.Fields._id)
  				.as(OWNER_INFO)
  				;
-		SetOperation setOperation = SetOperation
+		SetOperation setOwnerNameOperation = SetOperation
 				.set(PostRetrDto.Fields.ownerName)
-				.toValue(ArrayElemAt.arrayOf(OWNER_INFO + '.' + User.Fields.name)
-				.elementAt(0))
+				.toValue(
+					ArrayElemAt.arrayOf(OWNER_INFO + '.' + User.Fields.name).elementAt(0)
+				)
+				;
+		
+		SetOperation setPostIdOperation = SetOperation
+				.set(PostRetrDto.Fields.postId)
+				.toValue("$" + Post.Fields._id)
 				;
  		// @formatter:on
 
 		opsList.add(lookupOperation);
-		opsList.add(setOperation);
+		opsList.add(setOwnerNameOperation);
+		opsList.add(setPostIdOperation);
 		opsList.add(Aggregation.sort(Sort.Direction.DESC, Post.Fields.createdAt));
 		opsList.add(Aggregation.skip(skip));
 		opsList.add(Aggregation.limit(limit));

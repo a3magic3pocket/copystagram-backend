@@ -26,6 +26,7 @@ import com.copystagram.api.global.config.GlobalConfig;
 import com.copystagram.api.global.encryption.HashUtil;
 import com.copystagram.api.global.file.LocalFileUtil;
 import com.copystagram.api.global.image.ImageManipulation;
+import com.copystagram.api.metapostlist.MetaPostListService;
 import com.copystagram.api.noti.NotiService;
 
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class PostService {
 	public final LocalFileUtil localFileUtil;
 	public final GlobalConfig globalConfig;
 	public final ImageManipulation imageManipulation;
+	public final MetaPostListService metaPostListService;
 	public final PostRepository postRepository;
 	public final NotiService notiService;
 	public final HashUtil hashUtil;
@@ -207,6 +209,7 @@ public class PostService {
 		int skip = (pageNum - 1) * pageSize;
 
 		List<PostRetrDto> posts = postRepository.getLatestAllPosts(skip, pageSize);
+		metaPostListService.countNumViews(posts);
 
 		PostListDto postListDto = new PostListDto();
 		postListDto.setPageNum(pageNum);
@@ -220,6 +223,7 @@ public class PostService {
 		int skip = (pageNum - 1) * pageSize;
 
 		List<PostRetrDto> posts = postRepository.getLatestPosts(skip, pageSize, id);
+		metaPostListService.countNumViews(posts);
 
 		PostListDto postListDto = new PostListDto();
 		postListDto.setPageNum(pageNum);

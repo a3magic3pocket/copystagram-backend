@@ -11,6 +11,7 @@ import lombok.experimental.FieldNameConstants;
 @Getter
 @Setter
 public class PostRetrDto {
+	public String postId;
 	public String ownerName;
 	public String description;
 	public String thumbImagePath;

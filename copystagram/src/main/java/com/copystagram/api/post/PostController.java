@@ -11,23 +11,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.copystagram.api.global.dto.ErrorRespDto;
+import com.copystagram.api.global.dto.SimpleSuccessRespDto;
+import com.copystagram.api.metapostlist.MetaPostList;
+import com.copystagram.api.metapostlist.MetaPostListService;
 import com.mongodb.lang.Nullable;
 
-import jakarta.validation.ConstraintViolationException;
-import jakarta.validation.ValidationException;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 
@@ -37,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 public class PostController {
 	public final PostService postService;
+	public final MetaPostListService metaPostListService;
 
 	@PostMapping(value = "/post")
 	public String create(
@@ -104,4 +102,18 @@ public class PostController {
 		return new ResponseEntity<>(postCountDto, HttpStatus.OK);
 	}
 
+	@PostMapping("/post/click-count")
+	public ResponseEntity<?> countPostListNumClicks(
+			@Valid @NotBlank(message = "postId 값이 없습니다.") @RequestParam(value = "postId") String postId) {
+		boolean isOk = metaPostListService.countNumClicks(postId);
+		if (isOk) {
+			SimpleSuccessRespDto simpleSuccessRespDto = new SimpleSuccessRespDto();
+			simpleSuccessRespDto.setMessage("success");
+
+			return new ResponseEntity<>(simpleSuccessRespDto, HttpStatus.OK);
+		}
+
+		ErrorRespDto errorRespDto = new ErrorRespDto("9999", "ko", "처리 실패");
+		return new ResponseEntity<>(errorRespDto, HttpStatus.BAD_REQUEST);
+	}
 }

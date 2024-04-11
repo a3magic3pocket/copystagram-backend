@@ -18,8 +18,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.KafkaStreamsConfiguration;
 import org.springframework.kafka.config.StreamsBuilderFactoryBean;
 
-import com.copystagram.api.streams.PostInfo;
-import com.copystagram.api.streams.PostInfoSerde;
+import com.copystagram.api.metapostlist.MetaPostList;
+import com.copystagram.api.metapostlist.MetaPostListSerde;
 
 @Configuration
 public class KafkaStreamsConfig {
@@ -37,57 +37,65 @@ public class KafkaStreamsConfig {
 		return new KafkaStreamsConfiguration(props);
 	}
 
-	@Bean("postInfoDSLBuilder")
-	FactoryBean<StreamsBuilder> postInfoDSLBuilder() {
+	private String formatKTableKey(String key) {
+		return "{'_id':\"" + key + "\"}";
+	}
+
+	@Bean("metaPostListDSLBuilder")
+	FactoryBean<StreamsBuilder> metaPostListDSLBuilder() {
 		StreamsBuilderFactoryBean streamsBuilder = new StreamsBuilderFactoryBean(
-				kStreamsConfig("post-info", PostInfoSerde.class));
+				kStreamsConfig("meta-post-list", MetaPostListSerde.class));
 		return streamsBuilder;
 	}
 
-	@Bean("postInfoKStream")
-	KStream<String, PostInfo> postInfoKStream(@Qualifier("postInfoDSLBuilder") StreamsBuilder postInfoDSLBuilder) {
-		KStream<String, PostInfo> kStream = postInfoDSLBuilder.stream("post-info");
-		System.out.println("come in here?");
+	@Bean("metaPostListKStream")
+	KStream<String, MetaPostList> metaPostListKStream(
+			@Qualifier("metaPostListDSLBuilder") StreamsBuilder metaPostListDSLBuilder) {
+		KStream<String, MetaPostList> kStream = metaPostListDSLBuilder.stream("meta-post-list");
+		System.out.println("IN meta-post-list");
 
 		// @formatter:off
 		kStream
-			.filter((key, value)-> value.getPostId() != null)
+			.filter((key, value) -> value.getPostId() != null && value.getNumClicks() != null && value.getNumViews() != null)
 			.selectKey((key, value) -> {
-				System.out.println("come in here???222");
-				return value.getPostId().replace("\"", "");
+				String businessKey = value.getPostId();
+				return this.formatKTableKey(businessKey);
 			})
 			.groupByKey()
 			.aggregate(
-				new Initializer<PostInfo>() {
-					public PostInfo apply() {
-						return new PostInfo();
+				new Initializer<MetaPostList>() {
+					public MetaPostList apply() {
+						return new MetaPostList();
 					}
 				},
-				new Aggregator<String, PostInfo, PostInfo>() {
-					public PostInfo apply(String key, PostInfo value, PostInfo aggregate) {
+				new Aggregator<String, MetaPostList, MetaPostList>() {
+					public MetaPostList apply(String key, MetaPostList value, MetaPostList aggregate) {
+						System.out.println("value.getPostId()++" + value.getPostId());
+						System.out.println("value.getNumViews()++" + value.getNumViews());
+						System.out.println("value.getNumClicks()++" + value.getNumClicks());
+						
 						aggregate.setPostId(value.getPostId());
 						
-						aggregate.setNumExposed(
-							aggregate.getNumExposed() + value.getNumExposed()
-						);
+						Long newNumViews = aggregate.getNumViews() == null ? 
+								value.getNumViews() : 
+								aggregate.getNumViews() + value.getNumViews()
+						;
+						aggregate.setNumViews(newNumViews);
+
+						Long newNumClicks = aggregate.getNumClicks() == null ? 
+								value.getNumClicks() : 
+								aggregate.getNumClicks() + value.getNumClicks()
+						;
+						aggregate.setNumClicks(newNumClicks);
 						
-						aggregate.setNumLike(
-							aggregate.getNumLike() + value.getNumLike()
-						);
-						
-						aggregate.setNumReply(
-								aggregate.getNumReply() + value.getNumReply()
-						);
-						
-						System.out.println("aggregate" + aggregate.toString());
 						
 						return aggregate;
 					}
 				},
-				Materialized.as("PostInfo")
+				Materialized.as(MongodbCollectionName.META_POST_LIST)
 			)
 		.toStream()
-		.to("post-info-result");
+		.to("meta-post-list-result");
 		return kStream;
 	}
 }
