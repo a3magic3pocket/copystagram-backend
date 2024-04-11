@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,20 +31,27 @@ public class LikeController {
 	public final PostRepository postRepository;
 	public final LikeService likeService;
 
-	private ErrorRespDto isPostIdValid(String inputPostId, String userId, Optional<Post> optPost) {
+	private ErrorRespDto isPostIdValid(String postId, String hookPostId) {
+		Optional<Post> optPost = postRepository.findById(postId);
 		if (optPost.isEmpty()) {
 			return new ErrorRespDto("9999", "ko", "잘못된 postId 입니다");
+		}
+
+		Optional<Post> optHookPost = postRepository.findById(hookPostId);
+
+		if (optHookPost.isEmpty()) {
+			return new ErrorRespDto("9999", "ko", "잘못된 hookPostId 입니다");
 		}
 
 		return null;
 	}
 
-	@GetMapping(value = "/like/up")
-	public ResponseEntity<?> up(@Valid @NotNull(message = "hello world") @RequestParam(value = "postId") String postId,
+	@PostMapping(value = "/like/up")
+	public ResponseEntity<?> up(
+			@Valid @NotNull(message = "postId는 필수값입니다") @RequestParam(value = "postId") String postId,
+			@NotEmpty(message = "hookPostId는 필수값입니다") @RequestParam(value = "hookPostId") String hookPostId,
 			Authentication authToken) {
-		Optional<Post> optPost = postRepository.findById(postId);
-
-		ErrorRespDto errorRespDto = this.isPostIdValid(postId, authToken.getName(), optPost);
+		ErrorRespDto errorRespDto = this.isPostIdValid(postId, hookPostId);
 		if (errorRespDto != null) {
 			return new ResponseEntity<>(errorRespDto, HttpStatus.UNPROCESSABLE_ENTITY);
 		}
@@ -52,7 +60,7 @@ public class LikeController {
 		likeUpsertDto.setPostId(postId);
 		likeUpsertDto.setOwnerId(authToken.getName());
 
-		this.likeService.up(likeUpsertDto);
+		this.likeService.up(likeUpsertDto, hookPostId);
 
 		SimpleSuccessRespDto simpleSuccessRespDto = new SimpleSuccessRespDto();
 		simpleSuccessRespDto.setMessage("success");
@@ -60,12 +68,11 @@ public class LikeController {
 		return new ResponseEntity<>(simpleSuccessRespDto, HttpStatus.OK);
 	}
 
-	@GetMapping(value = "/like/down")
-	public ResponseEntity<?> down(@NotEmpty(message = "postId는 필수값입니다") @RequestParam("postId") String postId,
+	@PostMapping(value = "/like/down")
+	public ResponseEntity<?> down(@NotEmpty(message = "postId는 필수값입니다") @RequestParam(value = "postId") String postId,
+			@NotEmpty(message = "hookPostId는 필수값입니다") @RequestParam(value = "hookPostId") String hookPostId,
 			Authentication authToken) {
-		Optional<Post> optPost = postRepository.findById(postId);
-
-		ErrorRespDto errorRespDto = this.isPostIdValid(postId, authToken.getName(), optPost);
+		ErrorRespDto errorRespDto = this.isPostIdValid(postId, hookPostId);
 		if (errorRespDto != null) {
 			return new ResponseEntity<>(errorRespDto, HttpStatus.UNPROCESSABLE_ENTITY);
 		}
@@ -74,7 +81,7 @@ public class LikeController {
 		likeUpsertDto.setPostId(postId);
 		likeUpsertDto.setOwnerId(authToken.getName());
 
-		this.likeService.down(likeUpsertDto);
+		this.likeService.down(likeUpsertDto, hookPostId);
 
 		SimpleSuccessRespDto simpleSuccessRespDto = new SimpleSuccessRespDto();
 		simpleSuccessRespDto.setMessage("success");

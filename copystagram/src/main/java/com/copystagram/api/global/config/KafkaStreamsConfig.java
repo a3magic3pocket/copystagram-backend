@@ -18,6 +18,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.config.KafkaStreamsConfiguration;
 import org.springframework.kafka.config.StreamsBuilderFactoryBean;
 
+import com.copystagram.api.metapost.MetaPost;
+import com.copystagram.api.metapost.MetaPostSerde;
 import com.copystagram.api.metapostlist.MetaPostList;
 import com.copystagram.api.metapostlist.MetaPostListSerde;
 
@@ -96,6 +98,78 @@ public class KafkaStreamsConfig {
 			)
 		.toStream()
 		.to("meta-post-list-result");
+		return kStream;
+	}
+	
+	@Bean("metaPostDSLBuilder")
+	FactoryBean<StreamsBuilder> metaPostDSLBuilder() {
+		StreamsBuilderFactoryBean streamsBuilder = new StreamsBuilderFactoryBean(
+				kStreamsConfig("meta-post", MetaPostSerde.class));
+		return streamsBuilder;
+	}
+	
+	@Bean("metaPostKStream")
+	KStream<String, MetaPost> metaPostKStream(
+			@Qualifier("metaPostDSLBuilder") StreamsBuilder metaPostDSLBuilder) {
+		KStream<String, MetaPost> kStream = metaPostDSLBuilder.stream("meta-post");
+		System.out.println("IN meta-post");
+
+		// @formatter:off
+		kStream
+			.filter((key, value) -> (
+				value.getPostId() != null &&
+				value.getHookPostId() != null &&
+				value.getNumLikes() != null &&
+				value.getNumReplies() != null && 
+				value.getNumViews() != null
+			))
+			.selectKey((key, value) -> {
+				String businessKey = value.getPostId();
+				return this.formatKTableKey(businessKey);
+			})
+			.groupByKey()
+			.aggregate(
+				new Initializer<MetaPost>() {
+					public MetaPost apply() {
+						return new MetaPost();
+					}
+				},
+				new Aggregator<String, MetaPost, MetaPost>() {
+					public MetaPost apply(String key, MetaPost value, MetaPost aggregate) {
+						System.out.println("value.getPostId()" + value.getPostId());
+						System.out.println("value.getHookPostId()" + value.getHookPostId());
+						System.out.println("value.getNumLikes()" + value.getNumLikes());
+						System.out.println("value.getNumReplies()" + value.getNumReplies());
+						System.out.println("value.getNumViews()" + value.getNumViews());
+						
+						aggregate.setPostId(value.getPostId());
+						aggregate.setHookPostId(value.getHookPostId());
+						
+						Long newNumLikes = aggregate.getNumLikes() == null ? 
+							value.getNumLikes() : 
+							aggregate.getNumLikes() + value.getNumLikes()
+						;
+						aggregate.setNumLikes(newNumLikes);
+
+						Long newNumReplies = aggregate.getNumReplies() == null ? 
+							value.getNumReplies() : 
+							aggregate.getNumReplies() + value.getNumReplies()
+						;
+						aggregate.setNumReplies(newNumReplies);
+
+						Long newNumViews = aggregate.getNumViews() == null ? 
+							value.getNumViews() : 
+							aggregate.getNumViews() + value.getNumViews()
+						;
+						aggregate.setNumViews(newNumViews);
+						
+						return aggregate;
+					}
+				},
+				Materialized.as(MongodbCollectionName.META_POST)
+			)
+		.toStream()
+		.to("meta-post-result");
 		return kStream;
 	}
 }
