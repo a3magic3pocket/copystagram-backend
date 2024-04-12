@@ -124,7 +124,7 @@ public class KafkaStreamsConfig {
 				value.getNumViews() != null
 			))
 			.selectKey((key, value) -> {
-				String businessKey = value.getPostId();
+				String businessKey = value.getPostId() + "|" + value.getHookPostId();
 				return this.formatKTableKey(businessKey);
 			})
 			.groupByKey()
