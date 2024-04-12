@@ -15,6 +15,7 @@ public class PostRetrDto {
 	public String ownerName;
 	public String description;
 	public String thumbImagePath;
+	public Long numLikes;
 	public List<String> contentImagePaths;
 	public LocalDateTime createdAt;
 }

@@ -44,6 +44,12 @@ public class CustomizedPostRepositoryImpl implements CustomizedPostRepository {
  				.foreignField(User.Fields._id)
  				.as(OWNER_INFO)
  				;
+ 		LookupOperation lookupLikeInfoOperation = LookupOperation.newLookup()
+ 				.from(MongodbCollectionName.LIKE)
+ 				.localField(Post.Fields._id)
+ 				.foreignField(Like.Fields.postId)
+ 				.as(LIKE_INFO)
+ 				;
 		SetOperation setOwnerNameOperation = SetOperation
 				.set(PostRetrDto.Fields.ownerName)
 				.toValue(
@@ -63,6 +69,7 @@ public class CustomizedPostRepositoryImpl implements CustomizedPostRepository {
  		// @formatter:on
 
 		opsList.add(lookupOperation);
+		opsList.add(lookupLikeInfoOperation);
 		opsList.add(setOwnerNameOperation);
 		opsList.add(setPostIdOperation);
 		opsList.add(setNumLikesOperation);
@@ -82,8 +89,8 @@ public class CustomizedPostRepositoryImpl implements CustomizedPostRepository {
 	}
 
 	@Override
-	public List<PostRetrDto> getLatestPosts(int skip, int limit, String id) {
-		List<Criteria> criteriaList = List.of(Criteria.where(Post.Fields.ownerId).is(new ObjectId(id)));
+	public List<PostRetrDto> getLatestPosts(int skip, int limit, String ownerId) {
+		List<Criteria> criteriaList = List.of(Criteria.where(Post.Fields.ownerId).is(new ObjectId(ownerId)));
 
 		return this.getLatesPostsLogic(skip, limit, criteriaList);
 	}
