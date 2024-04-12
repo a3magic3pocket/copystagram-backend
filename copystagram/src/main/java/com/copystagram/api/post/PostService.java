@@ -26,6 +26,7 @@ import com.copystagram.api.global.config.GlobalConfig;
 import com.copystagram.api.global.encryption.HashUtil;
 import com.copystagram.api.global.file.LocalFileUtil;
 import com.copystagram.api.global.image.ImageManipulation;
+import com.copystagram.api.metapost.MetaPostService;
 import com.copystagram.api.metapostlist.MetaPostListService;
 import com.copystagram.api.noti.NotiService;
 
@@ -38,6 +39,7 @@ public class PostService {
 	public final GlobalConfig globalConfig;
 	public final ImageManipulation imageManipulation;
 	public final MetaPostListService metaPostListService;
+	public final MetaPostService metaPostService;
 	public final PostRepository postRepository;
 	public final NotiService notiService;
 	public final HashUtil hashUtil;
@@ -238,6 +240,20 @@ public class PostService {
 
 		List<PostRetrDto> posts = postRepository.getPopularAllPosts(skip, pageSize);
 		metaPostListService.countNumViews(posts);
+
+		PostListDto postListDto = new PostListDto();
+		postListDto.setPageNum(pageNum);
+		postListDto.setPageSize(posts.size());
+		postListDto.setPosts(posts);
+
+		return postListDto;
+	}
+
+	public PostListDto getRelatedAllPosts(int pageNum, int pageSize, String hookPostId) {
+		int skip = (pageNum - 1) * pageSize;
+
+		List<PostRetrDto> posts = postRepository.getRelatedAllPosts(skip, pageSize, hookPostId);
+		metaPostService.countNumViews(posts, hookPostId);
 
 		PostListDto postListDto = new PostListDto();
 		postListDto.setPageNum(pageNum);

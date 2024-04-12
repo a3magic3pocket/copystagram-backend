@@ -20,7 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.copystagram.api.global.dto.ErrorRespDto;
 import com.copystagram.api.global.dto.SimpleSuccessRespDto;
-import com.copystagram.api.metapostlist.MetaPostList;
 import com.copystagram.api.metapostlist.MetaPostListService;
 import com.mongodb.lang.Nullable;
 
@@ -34,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 @Validated
 public class PostController {
 	public final PostService postService;
+	public final PostRepository postRepository;
 	public final MetaPostListService metaPostListService;
 
 	@PostMapping(value = "/post")
@@ -87,6 +87,38 @@ public class PostController {
 		}
 
 		PostListDto posts = postService.getLatestPosts(pageNum, pageSize, authToken.getName());
+
+		return new ResponseEntity<>(posts, HttpStatus.OK);
+	}
+
+	@GetMapping("/related-posts")
+	public ResponseEntity<?> listRelatedPosts(
+			@RequestParam(value = "page-num", required = false) @Nullable Integer pageNum,
+			@RequestParam(value = "hook-post-id", required = false) @Nullable String hookPostId,
+			Authentication authToken) {
+		if (authToken == null) {
+			ErrorRespDto errorRespDto = new ErrorRespDto("9999", "ko", "없는 유저 입니다");
+			return new ResponseEntity<>(errorRespDto, HttpStatus.UNPROCESSABLE_ENTITY);
+		}
+
+		if (hookPostId == null) {
+			ErrorRespDto errorRespDto = new ErrorRespDto("9999", "ko", "hook-post-id 오류");
+			return new ResponseEntity<>(errorRespDto, HttpStatus.UNPROCESSABLE_ENTITY);
+		}
+
+		boolean exists = this.postRepository.existsById(hookPostId);
+		if (!exists) {
+			ErrorRespDto errorRespDto = new ErrorRespDto("9999", "ko", "hook-post-id 오류");
+			return new ResponseEntity<>(errorRespDto, HttpStatus.UNPROCESSABLE_ENTITY);
+		}
+
+		int pageSize = 9;
+		if (pageNum == null || pageNum <= 0) {
+			pageNum = 1;
+		}
+		System.out.println("hookPostId+++" + hookPostId);
+
+		PostListDto posts = postService.getRelatedAllPosts(pageNum, pageSize, hookPostId);
 
 		return new ResponseEntity<>(posts, HttpStatus.OK);
 	}
