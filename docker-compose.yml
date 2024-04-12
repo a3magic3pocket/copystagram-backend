@@ -13,7 +13,7 @@ services:
     volumes:
       - ./kafka/config/secrets:/etc/kafka/secrets
       - ./kafka/config/file-input:/mnt/shared/config
-      - ./kafka/data:/tmp/kraft-combined-logs
+      # - ./kafka/data:/tmp/kraft-combined-logs
     environment:
       # Environment variables used by kafka scripts will be needed in case of File input.
       CLUSTER_ID: '4L6g3nShT-eMCtK--X86sw'
@@ -38,6 +38,7 @@ services:
 
   kafka-connect:
       image: confluentinc/cp-kafka-connect:7.6.0
+      restart: always
       ports:
         - 8083:8083
       depends_on:
