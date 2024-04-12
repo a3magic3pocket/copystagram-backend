@@ -8,6 +8,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationOperation;
+import org.springframework.data.mongodb.core.aggregation.ArithmeticOperators;
 import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 import org.springframework.data.mongodb.core.aggregation.ArrayOperators.ArrayElemAt;
 import org.springframework.data.mongodb.core.aggregation.Fields;
@@ -18,6 +19,7 @@ import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.stereotype.Component;
 
 import com.copystagram.api.global.config.MongodbCollectionName;
+import com.copystagram.api.metapostlist.MetaPostList;
 import com.copystagram.api.user.User;
 
 import lombok.RequiredArgsConstructor;
@@ -48,7 +50,6 @@ public class CustomizedPostRepositoryImpl implements CustomizedPostRepository {
 					ArrayElemAt.arrayOf(OWNER_INFO + '.' + User.Fields.name).elementAt(0)
 				)
 				;
-		
 		SetOperation setPostIdOperation = SetOperation
 				.set(PostRetrDto.Fields.postId)
 				.toValue("$" + Post.Fields._id)
@@ -92,5 +93,63 @@ public class CustomizedPostRepositoryImpl implements CustomizedPostRepository {
 
 		return mongoTemplate.aggregate(aggregation, MongodbCollectionName.POST, PostCountDto.class).getMappedResults()
 				.getFirst();
+	}
+
+	@Override
+	public List<PostRetrDto> getPopularAllPosts(int skip, int limit) {
+		List<AggregationOperation> opsList = new ArrayList<>();
+		final String OWNER_INFO = "ownerInfo";
+		final String META_POST_INFO = "metaPostInfo";
+		final String POPULAR_INDEX = "popularIndex";
+
+		// @formatter:off
+ 		LookupOperation lookupOwnerInfoOperation = LookupOperation.newLookup()
+ 				.from(MongodbCollectionName.USER)
+ 				.localField(Post.Fields.ownerId)
+ 				.foreignField(User.Fields._id)
+ 				.as(OWNER_INFO)
+ 				;
+ 		LookupOperation lookupMetaPostInfoOperation = LookupOperation.newLookup()
+ 				.from(MongodbCollectionName.META_POST_LIST)
+ 				.localField(Post.Fields._id)
+ 				.foreignField(MetaPostList.Fields.postId)
+ 				.as(META_POST_INFO)
+ 				;
+		SetOperation setOwnerNameOperation = SetOperation
+				.set(PostRetrDto.Fields.ownerName)
+				.toValue(
+					ArrayElemAt.arrayOf(OWNER_INFO + '.' + User.Fields.name).elementAt(0)
+				)
+				;
+		SetOperation setPostIdOperation = SetOperation
+				.set(PostRetrDto.Fields.postId)
+				.toValue("$" + Post.Fields._id)
+				;
+		SetOperation setPopularIndexOperation = SetOperation
+				.set(POPULAR_INDEX)
+				.toValue(
+					ArithmeticOperators.Divide.valueOf(
+						ArrayElemAt.arrayOf(META_POST_INFO + '.' + MetaPostList.Fields.numClicks).elementAt(0)
+					).divideBy(
+						ArrayElemAt.arrayOf(META_POST_INFO + '.' + MetaPostList.Fields.numViews).elementAt(0)
+					)
+				)
+				;
+
+ 		// @formatter:on
+
+		opsList.add(lookupOwnerInfoOperation);
+		opsList.add(lookupMetaPostInfoOperation);
+		opsList.add(setOwnerNameOperation);
+		opsList.add(setPostIdOperation);
+		opsList.add(setPopularIndexOperation);
+		opsList.add(
+				Aggregation.sort(Sort.Direction.DESC, POPULAR_INDEX).and(Sort.Direction.DESC, Post.Fields.createdAt));
+		opsList.add(Aggregation.skip(skip));
+		opsList.add(Aggregation.limit(limit));
+
+		Aggregation aggregation = Aggregation.newAggregation(opsList);
+
+		return mongoTemplate.aggregate(aggregation, MongodbCollectionName.POST, PostRetrDto.class).getMappedResults();
 	}
 }

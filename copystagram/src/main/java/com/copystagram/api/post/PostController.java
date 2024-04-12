@@ -70,7 +70,7 @@ public class PostController {
 			pageNum = 1;
 		}
 
-		return postService.getLatestAllPosts(pageNum, pageSize);
+		return postService.getPopularAllPosts(pageNum, pageSize);
 	}
 
 	@GetMapping("/my-posts")

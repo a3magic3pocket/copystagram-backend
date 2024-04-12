@@ -233,6 +233,20 @@ public class PostService {
 		return postListDto;
 	}
 
+	public PostListDto getPopularAllPosts(int pageNum, int pageSize) {
+		int skip = (pageNum - 1) * pageSize;
+
+		List<PostRetrDto> posts = postRepository.getPopularAllPosts(skip, pageSize);
+		metaPostListService.countNumViews(posts);
+
+		PostListDto postListDto = new PostListDto();
+		postListDto.setPageNum(pageNum);
+		postListDto.setPageSize(posts.size());
+		postListDto.setPosts(posts);
+
+		return postListDto;
+	}
+
 	public PostCountDto countPostsById(String id) {
 		return postRepository.countPostsById(id);
 	}
