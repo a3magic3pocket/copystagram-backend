@@ -1,6 +1,5 @@
 package com.copystagram.api.like;
 
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import com.copystagram.api.metapost.MetaPostService;
@@ -21,7 +20,9 @@ public class LikeService {
 
 		this.likeRepository.upsert(like);
 
-		this.metaPostService.upNumLikes(likeUpsertDto.getPostId(), hookPostId);
+		if (hookPostId != null) {
+			this.metaPostService.upNumLikes(likeUpsertDto.getPostId(), hookPostId);
+		}
 	}
 
 	public void down(LikeUpsertDto likeUpsertDto, String hookPostId) {
@@ -32,6 +33,8 @@ public class LikeService {
 
 		this.likeRepository.upsert(like);
 
-		this.metaPostService.downNumLikes(likeUpsertDto.getPostId(), hookPostId);
+		if (hookPostId != null) {
+			this.metaPostService.downNumLikes(likeUpsertDto.getPostId(), hookPostId);
+		}
 	}
 }

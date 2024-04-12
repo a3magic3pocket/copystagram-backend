@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,10 +36,12 @@ public class LikeController {
 			return new ErrorRespDto("9999", "ko", "잘못된 postId 입니다");
 		}
 
-		Optional<Post> optHookPost = postRepository.findById(hookPostId);
+		if (hookPostId != null) {
+			Optional<Post> optHookPost = postRepository.findById(hookPostId);
 
-		if (optHookPost.isEmpty()) {
-			return new ErrorRespDto("9999", "ko", "잘못된 hookPostId 입니다");
+			if (optHookPost.isEmpty()) {
+				return new ErrorRespDto("9999", "ko", "잘못된 hookPostId 입니다");
+			}
 		}
 
 		return null;
@@ -49,8 +50,7 @@ public class LikeController {
 	@PostMapping(value = "/like/up")
 	public ResponseEntity<?> up(
 			@Valid @NotNull(message = "postId는 필수값입니다") @RequestParam(value = "postId") String postId,
-			@NotEmpty(message = "hookPostId는 필수값입니다") @RequestParam(value = "hookPostId") String hookPostId,
-			Authentication authToken) {
+			@RequestParam(value = "hookPostId", required = false) String hookPostId, Authentication authToken) {
 		ErrorRespDto errorRespDto = this.isPostIdValid(postId, hookPostId);
 		if (errorRespDto != null) {
 			return new ResponseEntity<>(errorRespDto, HttpStatus.UNPROCESSABLE_ENTITY);
@@ -70,8 +70,7 @@ public class LikeController {
 
 	@PostMapping(value = "/like/down")
 	public ResponseEntity<?> down(@NotEmpty(message = "postId는 필수값입니다") @RequestParam(value = "postId") String postId,
-			@NotEmpty(message = "hookPostId는 필수값입니다") @RequestParam(value = "hookPostId") String hookPostId,
-			Authentication authToken) {
+			@RequestParam(value = "hookPostId", required = false) String hookPostId, Authentication authToken) {
 		ErrorRespDto errorRespDto = this.isPostIdValid(postId, hookPostId);
 		if (errorRespDto != null) {
 			return new ResponseEntity<>(errorRespDto, HttpStatus.UNPROCESSABLE_ENTITY);
