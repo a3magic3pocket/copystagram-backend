@@ -66,7 +66,7 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
 	private User saveNewUser(Map<String, Object> attributes, String provider) {
 		String email = (String) attributes.get("email");
 		String openId = (String) attributes.getOrDefault("sub", "");
-		String name = (String) attributes.getOrDefault("name", "");
+		String name = email.split("@")[0];
 		String locale = (String) attributes.getOrDefault("locale", "");
 		String defaultDescription = "Hello copystagram :)";
 
