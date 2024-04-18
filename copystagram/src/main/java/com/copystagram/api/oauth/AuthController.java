@@ -26,6 +26,7 @@ public class AuthController {
 
 		// 힌트 쿠키 추가
 		Cookie authHintCookie = new Cookie(globalConfig.getAuthHintCookieName(), "none");
+		authHintCookie.setDomain(globalConfig.getAuthHintCookieDomain());
 		authHintCookie.setMaxAge(sessionMaxAge);
 		authHintCookie.setPath("/");
 		response.addCookie(authHintCookie);
@@ -44,6 +45,7 @@ public class AuthController {
 
 		// 힌트 쿠키 제거
 		Cookie authHintCookie = new Cookie(globalConfig.getAuthHintCookieName(), "none");
+		authHintCookie.setDomain(globalConfig.getAuthHintCookieDomain());
 		authHintCookie.setMaxAge(0);
 		authHintCookie.setPath("/");
 		response.addCookie(authHintCookie);

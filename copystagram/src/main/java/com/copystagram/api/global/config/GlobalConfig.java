@@ -11,6 +11,7 @@ import lombok.Setter;
 public class GlobalConfig {
 	private String frontendUri;
 	private String corsOrigins;
+	private String authHintCookieDomain;
 	private String authHintCookieName;
 	private String staticDirPath;
 	private String rootImageDirName;
