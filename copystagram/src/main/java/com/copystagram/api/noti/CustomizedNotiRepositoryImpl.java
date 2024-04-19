@@ -64,6 +64,10 @@ public class CustomizedNotiRepositoryImpl implements CustomizedNotiRepository {
 				.toValue(ArrayElemAt.arrayOf(POST_INFO + '.' + Post.Fields.thumbImagePath)
 				.elementAt(0))
 				;
+		SetOperation setNotiIdOperation = SetOperation
+				.set(NotiRetrDto.Fields.notiId)
+				.toValue("$" + Post.Fields._id)
+				;
  		// @formatter:on
 
 		opsList.add(ownerLookupOperation);
@@ -71,6 +75,7 @@ public class CustomizedNotiRepositoryImpl implements CustomizedNotiRepository {
 		opsList.add(ownerImageSetOperation);
 		opsList.add(postLookupOperation);
 		opsList.add(postSetOperation);
+		opsList.add(setNotiIdOperation);
 		opsList.add(Aggregation.sort(Sort.Direction.DESC, Noti.Fields.createdAt));
 		opsList.add(Aggregation.skip(skip));
 		opsList.add(Aggregation.limit(limit));

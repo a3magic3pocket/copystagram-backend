@@ -10,6 +10,7 @@ import lombok.experimental.FieldNameConstants;
 @Getter
 @Setter
 public class NotiRetrDto {
+	public String notiId;
 	public String ownerName;
 	public String ownerThumbImagePath;
 	public String content;
