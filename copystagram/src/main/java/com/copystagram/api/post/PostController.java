@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -64,7 +65,8 @@ public class PostController {
 
 			PostCreationImageDto postCreationImageDto = new PostCreationImageDto();
 			postCreationImageDto.setImageBytes(imageFile.getBytes());
-			postCreationImageDto.setOriginalFilename(imageFile.getOriginalFilename());
+//			postCreationImageDto.setOriginalFilename(imageFile.getOriginalFilename());
+			postCreationImageDto.setOriginalFilename(UUID.randomUUID().toString());
 			System.out.println(i + "   " + imageFile.getOriginalFilename());
 
 			imageMap.put(i, postCreationImageDto);
