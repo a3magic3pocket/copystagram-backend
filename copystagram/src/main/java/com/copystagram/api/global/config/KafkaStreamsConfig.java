@@ -72,9 +72,9 @@ public class KafkaStreamsConfig {
 				},
 				new Aggregator<String, MetaPostList, MetaPostList>() {
 					public MetaPostList apply(String key, MetaPostList value, MetaPostList aggregate) {
-						System.out.println("value.getPostId()++" + value.getPostId());
-						System.out.println("value.getNumViews()++" + value.getNumViews());
-						System.out.println("value.getNumClicks()++" + value.getNumClicks());
+						// System.out.println("value.getPostId()++" + value.getPostId());
+						// System.out.println("value.getNumViews()++" + value.getNumViews());
+						// System.out.println("value.getNumClicks()++" + value.getNumClicks());
 						
 						aggregate.setPostId(value.getPostId());
 						
@@ -136,11 +136,11 @@ public class KafkaStreamsConfig {
 				},
 				new Aggregator<String, MetaPost, MetaPost>() {
 					public MetaPost apply(String key, MetaPost value, MetaPost aggregate) {
-						System.out.println("value.getPostId()" + value.getPostId());
-						System.out.println("value.getHookPostId()" + value.getHookPostId());
-						System.out.println("value.getNumLikes()" + value.getNumLikes());
-						System.out.println("value.getNumReplies()" + value.getNumReplies());
-						System.out.println("value.getNumViews()" + value.getNumViews());
+						// System.out.println("value.getPostId()" + value.getPostId());
+						// System.out.println("value.getHookPostId()" + value.getHookPostId());
+						// System.out.println("value.getNumLikes()" + value.getNumLikes());
+						// System.out.println("value.getNumReplies()" + value.getNumReplies());
+						// System.out.println("value.getNumViews()" + value.getNumViews());
 						
 						aggregate.setPostId(value.getPostId());
 						aggregate.setHookPostId(value.getHookPostId());

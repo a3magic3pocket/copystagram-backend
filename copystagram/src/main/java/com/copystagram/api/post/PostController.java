@@ -56,7 +56,6 @@ public class PostController {
 			MultipartFile imageFile = imageFiles[i];
 
 			String detectedType = tika.detect(imageFile.getBytes());
-			System.out.println("detectedType++" + detectedType);
 			if (!allowedExts.contains(detectedType)) {
 				ErrorRespDto errorRespDto = new ErrorRespDto("9999", "ko",
 						"허가되지 않은 파일이 포함되어있습니다. 허용된 파일 확장자: " + String.join(", ", allowedExts));
@@ -135,7 +134,7 @@ public class PostController {
 		if (pageNum == null || pageNum <= 0) {
 			pageNum = 1;
 		}
-		System.out.println("hookPostId+++" + hookPostId);
+		// System.out.println("hookPostId+++" + hookPostId);
 
 		PostListDto posts = postService.getRelatedAllPosts(pageNum, pageSize, hookPostId);
 

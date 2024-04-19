@@ -19,7 +19,7 @@ public class MetaPostListService {
 
 	public void countNumViews(List<PostRetrDto> posts) {
 		CompletableFuture.runAsync(() -> {
-			System.out.println("inner async start");
+			// System.out.println("inner async start");
 			try {
 				for (PostRetrDto post : posts) {
 					MetaPostList metaPostList = new MetaPostList();
@@ -32,7 +32,7 @@ public class MetaPostListService {
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
-			System.out.println("inner async end");
+			// System.out.println("inner async end");
 		}).exceptionally((e) -> {
 			System.out.println("e: " + e);
 			System.out.println("come in exceptionally");
@@ -43,7 +43,7 @@ public class MetaPostListService {
 
 	public boolean countNumClicks(String postId) {
 		boolean exists = this.postRepository.existsById(postId);
-		System.out.println("countNumClicks exists++++" + exists);
+		// System.out.println("countNumClicks exists++++" + exists);
 		if (exists) {
 			MetaPostList metaPostList = new MetaPostList();
 			metaPostList.setNumClicks(1L);

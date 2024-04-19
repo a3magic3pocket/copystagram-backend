@@ -19,7 +19,7 @@ public class MetaPostService {
 
 	public void countNumViews(List<PostRetrDto> posts, String hookPostId) {
 		CompletableFuture.runAsync(() -> {
-			System.out.println("inner async start");
+			// System.out.println("inner async start");
 			try {
 				for (PostRetrDto post : posts) {
 					MetaPost metaPost = new MetaPost();
@@ -34,7 +34,7 @@ public class MetaPostService {
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
-			System.out.println("inner async end");
+			// System.out.println("inner async end");
 		}).exceptionally((e) -> {
 			System.out.println("e: " + e);
 			System.out.println("come in exceptionally");

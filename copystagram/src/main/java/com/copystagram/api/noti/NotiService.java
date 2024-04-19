@@ -32,7 +32,7 @@ public class NotiService {
 	public boolean create(String to, String code, String relatedPostId) {
 		NotiMap notiMap = this.notiMapRepository.findByCode(code);
 		if (notiMap == null) {
-			System.out.println("createNoti::code not exists+" + code);
+			// System.out.println("createNoti::code not exists+" + code);
 			return false;
 		}
 
@@ -98,10 +98,9 @@ public class NotiService {
 		}
 
 		int skip = (pageNum - 1) * pageSize;
-		System.out.println("notiCheckeDate+++" + notiCheckeDate);
+		// System.out.println("notiCheckeDate+++" + notiCheckeDate);
 
 		List<Noti> notis = this.notiRepository.getMyUncheckedNotis(skip, pageSize, onwerId, notiCheckeDate);
-		System.out.println("notis++" + notis);
 		List<String> notiIds = new ArrayList<String>();
 		for (Noti noti : notis) {
 			notiIds.add(noti.get_id());

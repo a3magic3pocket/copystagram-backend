@@ -46,12 +46,12 @@ public class PostService {
 	public final KafkaTemplate<String, Object> kafkaTemplate;
 
 	public void create(PostCreationDto postCreationDto) {
-		System.out.println("postCreationDto: " + postCreationDto);
+		// System.out.println("postCreationDto: " + postCreationDto);
 		String imageDirName = UUID.randomUUID().toString();
 		String ownerId = postCreationDto.getOwnerId();
 
 		CompletableFuture.runAsync(() -> {
-			System.out.println("inner async start");
+			// System.out.println("inner async start");
 			try {
 				saveRawImageFiles(imageDirName, postCreationDto);
 
@@ -65,7 +65,7 @@ public class PostService {
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
-			System.out.println("inner async end");
+			// System.out.println("inner async end");
 		}).exceptionally((e) -> {
 			System.out.println("e: " + e);
 			System.out.println("come in exceptionally");
@@ -80,7 +80,7 @@ public class PostService {
 			return null;
 		});
 
-		System.out.println("end create PostService");
+		// System.out.println("end create PostService");
 	}
 
 	private void saveRawImageFiles(String imageDirName, PostCreationDto postCreationDto) throws IOException {
@@ -95,7 +95,7 @@ public class PostService {
 		Map<Integer, PostCreationImageDto> imageMap = postCreationDto.getImageMap();
 		for (Integer i : imageMap.keySet()) {
 			PostCreationImageDto postCreationImageDto = imageMap.get(i);
-			System.out.println(i + "     " + postCreationImageDto.getOriginalFilename());
+			// System.out.println(i + "     " + postCreationImageDto.getOriginalFilename());
 			String imageName = "/" + i + "_" + postCreationImageDto.getOriginalFilename();
 			Path imagePath = localFileUtil.getStaticFilePath(postRawDirName + imageName);
 
@@ -108,8 +108,8 @@ public class PostService {
 	@KafkaListener(topics = "post-creation", groupId = "post-creation", containerFactory = "postCreationKafkaListener")
 	private void consumePostCreation(PostCreationKafkaDto message, Acknowledgment acknowledgment) {
 		System.out.println("receive message: " + message);
-		System.out.println("message.getDescription()" + message.getDescription());
-		System.out.println("message.ImageDirName()" + message.getImageDirName());
+		// System.out.println("message.getDescription()" + message.getDescription());
+		// System.out.println("message.ImageDirName()" + message.getImageDirName());
 
 		String ownerId = message.getOwnerId();
 		String imageDirName = message.getImageDirName();
@@ -129,12 +129,12 @@ public class PostService {
 			Files.createDirectories(postContentDirPath);
 
 			List<Path> rawImagePaths = localFileUtil.getFilePaths(postRawDirPath);
-			System.out.println("rawImagePaths+" + rawImagePaths);
+			// System.out.println("rawImagePaths+" + rawImagePaths);
 
 			int i = 0;
 			String imageExt = "jpeg";
 			for (Path rawImagePath : rawImagePaths) {
-				System.out.println("     " + rawImagePath);
+				// System.out.println("     " + rawImagePath);
 				byte[] bytes = Files.readAllBytes(rawImagePath);
 
 				try (InputStream is = new ByteArrayInputStream(bytes)) {
@@ -153,7 +153,7 @@ public class PostService {
 
 					contentImagePaths.add(contentImagePath);
 
-					System.out.println("contentImageUri" + contentImagePath);
+					// System.out.println("contentImageUri" + contentImagePath);
 
 					if (i == 0) {
 						// thumbnail 이미지 resize
@@ -165,7 +165,7 @@ public class PostService {
 
 						thumbImagePath = "/" + imageDirName + "/" + globalConfig.getThumbDirName() + thumbFileName;
 
-						System.out.println("thumbImageUri" + thumbImagePath);
+						// System.out.println("thumbImageUri" + thumbImagePath);
 					}
 				}
 
@@ -201,7 +201,7 @@ public class PostService {
 
 			acknowledgment.nack(Duration.ofMinutes(4));
 		} finally {
-			System.out.println("come in final?" + postRawDirPath);
+			// System.out.println("come in final?" + postRawDirPath);
 			// raw 이미지 디렉토리 삭제
 			localFileUtil.deleteDir(postRawDirPath);
 		}
