@@ -1,12 +1,15 @@
 package com.copystagram.api.post;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 
+import org.apache.tika.Tika;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -37,10 +40,12 @@ public class PostController {
 	public final MetaPostListService metaPostListService;
 
 	@PostMapping(value = "/post")
-	public String create(
+	public ResponseEntity<?> create(
 			@Valid @NotBlank(message = "문구를 입력주세요.") @Size(max = 1000, message = "문구는 1000자 이하만 입력할 수 있습니다.") @RequestParam(value = "description") String desc,
 			@Valid @NotNull(message = "이미지 파일을 1개 이상 추가해야 합니다.") @RequestParam(value = "image") MultipartFile[] imageFiles,
 			Authentication authToken) throws IOException {
+		List<String> allowedExts = Arrays.asList("image/png", "image/jpg", "image/jpeg");
+		Tika tika = new Tika();
 
 		PostCreationDto postCreationDto = new PostCreationDto();
 		postCreationDto.setDescription(desc);
@@ -48,6 +53,15 @@ public class PostController {
 		Map<Integer, PostCreationImageDto> imageMap = new HashMap<Integer, PostCreationImageDto>();
 		for (Integer i = 0; i < imageFiles.length; i++) {
 			MultipartFile imageFile = imageFiles[i];
+
+			String detectedType = tika.detect(imageFile.getBytes());
+			System.out.println("detectedType++" + detectedType);
+			if (!allowedExts.contains(detectedType)) {
+				ErrorRespDto errorRespDto = new ErrorRespDto("9999", "ko",
+						"허가되지 않은 파일이 포함되어있습니다. 허용된 파일 확장자: " + String.join(", ", allowedExts));
+				return new ResponseEntity<>(errorRespDto, HttpStatus.UNPROCESSABLE_ENTITY);
+			}
+
 			PostCreationImageDto postCreationImageDto = new PostCreationImageDto();
 			postCreationImageDto.setImageBytes(imageFile.getBytes());
 			postCreationImageDto.setOriginalFilename(imageFile.getOriginalFilename());
@@ -60,7 +74,10 @@ public class PostController {
 
 		postService.create(postCreationDto);
 
-		return "success";
+		SimpleSuccessRespDto simpleSuccessRespDto = new SimpleSuccessRespDto();
+		simpleSuccessRespDto.setMessage("success");
+
+		return new ResponseEntity<>(simpleSuccessRespDto, HttpStatus.OK);
 	}
 
 	@GetMapping("/posts")
