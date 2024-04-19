@@ -1,7 +1,10 @@
 package com.copystagram.api.noti;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.Month;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.kafka.annotation.KafkaListener;
@@ -10,6 +13,8 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Service;
 
 import com.copystagram.api.global.encryption.HashUtil;
+import com.copystagram.api.noticheck.NotiCheck;
+import com.copystagram.api.noticheck.NotiCheckRepository;
 
 import org.springframework.dao.DuplicateKeyException;
 
@@ -19,12 +24,13 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class NotiService {
 	public final NotiMapRepository notiMapRepository;
+	public final NotiCheckRepository notiCheckRepository;
 	public final NotiRepository notiRepository;
 	public final HashUtil hashUtil;
 	public final KafkaTemplate<String, Object> kafkaTemplate;
 
-	public boolean createNoti(String to, String code, String relatedPostId) {
-		NotiMap notiMap = notiMapRepository.findByCode(code);
+	public boolean create(String to, String code, String relatedPostId) {
+		NotiMap notiMap = this.notiMapRepository.findByCode(code);
 		if (notiMap == null) {
 			System.out.println("createNoti::code not exists+" + code);
 			return false;
@@ -56,7 +62,7 @@ public class NotiService {
 			noti.setRelatedPostId(relatedPostId);
 			noti.setContent(content);
 			noti.setDocHash(hashUtil.getSha256Hash(source));
-			notiRepository.save(noti);
+			this.notiRepository.save(noti);
 			acknowledgment.acknowledge();
 		} catch (DuplicateKeyException e) {
 			// pass
@@ -68,10 +74,10 @@ public class NotiService {
 		}
 	}
 
-	public NotiListDto getLatestNotis(int pageNum, int pageSize, String id) {
+	public NotiListDto getLatestNotis(int pageNum, int pageSize, String onwerId) {
 		int skip = (pageNum - 1) * pageSize;
 
-		List<NotiRetrDto> notis = notiRepository.getLatestNotis(skip, pageSize, id);
+		List<NotiRetrDto> notis = this.notiRepository.getLatestNotis(skip, pageSize, onwerId);
 
 		NotiListDto notiListDto = new NotiListDto();
 		notiListDto.setPageNum(pageNum);
@@ -79,5 +85,28 @@ public class NotiService {
 		notiListDto.setNotifications(notis);
 
 		return notiListDto;
+	}
+
+	public List<String> getMyUncheckedNotis(int pageNum, int pageSize, String onwerId) {
+		LocalDateTime notiCheckeDate;
+		NotiCheck notiCheck = this.notiCheckRepository.findByOwnerId(onwerId);
+		if (notiCheck == null) {
+			// All notis have not been checked
+			notiCheckeDate = LocalDate.of(1899, Month.JANUARY, 1).atStartOfDay();
+		} else {
+			notiCheckeDate = notiCheck.getCheckedTime();
+		}
+
+		int skip = (pageNum - 1) * pageSize;
+		System.out.println("notiCheckeDate+++" + notiCheckeDate);
+
+		List<Noti> notis = this.notiRepository.getMyUncheckedNotis(skip, pageSize, onwerId, notiCheckeDate);
+		System.out.println("notis++" + notis);
+		List<String> notiIds = new ArrayList<String>();
+		for (Noti noti : notis) {
+			notiIds.add(noti.get_id());
+		}
+
+		return notiIds;
 	}
 }
