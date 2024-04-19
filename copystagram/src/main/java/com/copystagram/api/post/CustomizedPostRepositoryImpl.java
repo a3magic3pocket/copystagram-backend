@@ -105,8 +105,17 @@ public class CustomizedPostRepositoryImpl implements CustomizedPostRepository {
 
 		Aggregation aggregation = Aggregation.newAggregation(opsList);
 
-		return mongoTemplate.aggregate(aggregation, MongodbCollectionName.POST, PostCountDto.class).getMappedResults()
-				.getFirst();
+		List<PostCountDto> mappedResults = mongoTemplate
+				.aggregate(aggregation, MongodbCollectionName.POST, PostCountDto.class).getMappedResults();
+
+		if (mappedResults.isEmpty()) {
+			PostCountDto postCountDto = new PostCountDto();
+			postCountDto.setCount(0);
+
+			return postCountDto;
+		}
+
+		return mappedResults.getFirst();
 	}
 
 	@Override
