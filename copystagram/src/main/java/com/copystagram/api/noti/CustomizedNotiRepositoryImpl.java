@@ -1,5 +1,6 @@
 package com.copystagram.api.noti;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +13,7 @@ import org.springframework.data.mongodb.core.aggregation.ArrayOperators.ArrayEle
 import org.springframework.data.mongodb.core.aggregation.LookupOperation;
 import org.springframework.data.mongodb.core.aggregation.SetOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Component;
 
 import com.copystagram.api.global.config.MongodbCollectionName;
@@ -25,7 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class CustomizedNotiRepositoryImpl implements CustomizedNotiRepository {
 	public final MongoTemplate mongoTemplate;
 
-	private List<NotiRetrDto> getLatesPostsLogic(int skip, int limit, List<Criteria> criteriaList) {
+	private List<NotiRetrDto> getLatestNotisLogic(int skip, int limit, List<Criteria> criteriaList) {
 		List<AggregationOperation> opsList = new ArrayList<>();
 		final String OWNER_INFO = "ownerInfo";
 		final String POST_INFO = "postInfo";
@@ -75,13 +77,30 @@ public class CustomizedNotiRepositoryImpl implements CustomizedNotiRepository {
 
 		Aggregation aggregation = Aggregation.newAggregation(opsList);
 
-		return mongoTemplate.aggregate(aggregation, MongodbCollectionName.NOTI, NotiRetrDto.class).getMappedResults();
+		return this.mongoTemplate.aggregate(aggregation, MongodbCollectionName.NOTI, NotiRetrDto.class)
+				.getMappedResults();
 	}
 
 	@Override
-	public List<NotiRetrDto> getLatestNotis(int skip, int limit, String id) {
-		List<Criteria> criteriaList = List.of(Criteria.where(Noti.Fields.ownerId).is(new ObjectId(id)));
+	public List<NotiRetrDto> getLatestNotis(int skip, int limit, String onwerId) {
+		List<Criteria> criteriaList = List.of(Criteria.where(Noti.Fields.ownerId).is(new ObjectId(onwerId)));
 
-		return this.getLatesPostsLogic(skip, limit, criteriaList);
+		return this.getLatestNotisLogic(skip, limit, criteriaList);
+	}
+
+	@Override
+	public List<Noti> getMyUncheckedNotis(int skip, int limit, String ownerId, LocalDateTime notiCheckedTime) {
+		Query query = new Query();
+		Criteria criteria = new Criteria();
+
+		// @formatter:off
+		criteria.andOperator(
+			Criteria.where(Noti.Fields.ownerId).is(ownerId),
+			Criteria.where(Noti.Fields.createdAt).gt(notiCheckedTime)
+		);
+		// @formatter:on
+		query.addCriteria(criteria);
+
+		return this.mongoTemplate.find(query, Noti.class);
 	}
 }

@@ -79,7 +79,7 @@ public class CustomizedPostRepositoryImpl implements CustomizedPostRepository {
 
 		Aggregation aggregation = Aggregation.newAggregation(opsList);
 
-		return mongoTemplate.aggregate(aggregation, MongodbCollectionName.POST, PostRetrDto.class).getMappedResults();
+		return this.mongoTemplate.aggregate(aggregation, MongodbCollectionName.POST, PostRetrDto.class).getMappedResults();
 	}
 
 	@Override
@@ -105,7 +105,7 @@ public class CustomizedPostRepositoryImpl implements CustomizedPostRepository {
 
 		Aggregation aggregation = Aggregation.newAggregation(opsList);
 
-		List<PostCountDto> mappedResults = mongoTemplate
+		List<PostCountDto> mappedResults = this.mongoTemplate
 				.aggregate(aggregation, MongodbCollectionName.POST, PostCountDto.class).getMappedResults();
 
 		if (mappedResults.isEmpty()) {
@@ -189,7 +189,7 @@ public class CustomizedPostRepositoryImpl implements CustomizedPostRepository {
 
 		Aggregation aggregation = Aggregation.newAggregation(opsList);
 
-		return mongoTemplate.aggregate(aggregation, MongodbCollectionName.POST, PostRetrDto.class).getMappedResults();
+		return this.mongoTemplate.aggregate(aggregation, MongodbCollectionName.POST, PostRetrDto.class).getMappedResults();
 	}
 
 	@Override
@@ -265,6 +265,6 @@ public class CustomizedPostRepositoryImpl implements CustomizedPostRepository {
 
 		Aggregation aggregation = Aggregation.newAggregation(opsList);
 
-		return mongoTemplate.aggregate(aggregation, MongodbCollectionName.POST, PostRetrDto.class).getMappedResults();
+		return this.mongoTemplate.aggregate(aggregation, MongodbCollectionName.POST, PostRetrDto.class).getMappedResults();
 	}
 }
