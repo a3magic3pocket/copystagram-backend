@@ -225,7 +225,8 @@ public class PostService {
 		int skip = (pageNum - 1) * pageSize;
 
 		List<PostRetrDto> posts = postRepository.getLatestPosts(skip, pageSize, id);
-		metaPostListService.countNumViews(posts);
+		// TMP: DB 성능 이슈로 view 카운팅 금지
+		// metaPostListService.countNumViews(posts);
 
 		PostListDto postListDto = new PostListDto();
 		postListDto.setPageNum(pageNum);
@@ -239,7 +240,8 @@ public class PostService {
 		int skip = (pageNum - 1) * pageSize;
 
 		List<PostRetrDto> posts = postRepository.getPopularAllPosts(skip, pageSize);
-		metaPostListService.countNumViews(posts);
+		// TMP: DB 성능 이슈로 view 카운팅 금지
+		// metaPostListService.countNumViews(posts);
 
 		PostListDto postListDto = new PostListDto();
 		postListDto.setPageNum(pageNum);
@@ -253,7 +255,8 @@ public class PostService {
 		int skip = (pageNum - 1) * pageSize;
 
 		List<PostRetrDto> posts = postRepository.getRelatedAllPosts(skip, pageSize, hookPostId);
-		metaPostService.countNumViews(posts, hookPostId);
+		// TMP: DB 성능 이슈로 view 카운팅 금지
+		// metaPostService.countNumViews(posts, hookPostId);
 
 		PostListDto postListDto = new PostListDto();
 		postListDto.setPageNum(pageNum);
