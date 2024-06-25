@@ -34,7 +34,8 @@ copystagram-backend
 
     ```
 
-
+# The initial Kafka commands
+- ```bash
     ./kafka-topics.sh --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic post-creation --create
     
     ./kafka-topics.sh --bootstrap-server localhost:9092 --replication-factor 1 --partitions 3 --topic noti-creation --create
@@ -47,7 +48,6 @@ copystagram-backend
 
     ./kafka-topics.sh --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1 --topic meta-post-list-result --create
 
-
     ./kafka-streams-application-reset.sh --application-id meta-post \
                                     --input-topics meta-post \
                                     --intermediate-topics meta-post-result
@@ -56,3 +56,4 @@ copystagram-backend
     ./kafka-streams-application-reset.sh --application-id meta-post-list \
                                     --input-topics meta-post-list \
                                     --intermediate-topics meta-post-list-result
+    ```
